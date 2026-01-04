@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import stations
+from app.api import auth
 from app.core.config import settings
 from app.database import engine
 from app.models import Base
@@ -92,6 +93,10 @@ templates = Jinja2Templates(directory="app/templates")
 
 # Роутеры
 app.include_router(stations.router, prefix="/api/v1", tags=["stations"])
+app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
+
+# Create tables after all models are imported
+Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 async def home(request: Request):
