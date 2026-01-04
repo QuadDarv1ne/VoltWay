@@ -45,6 +45,9 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         loadStations(); // Загрузка по умолчанию
     }
+
+    // Загрузка станций по координатам
+    async function loadStations(lat = 55.7558, lon = 37.6173, radius = 10) {
         try {
             const response = await fetch(`/api/v1/stations?latitude=${lat}&longitude=${lon}&radius_km=${radius}`);
             stations = await response.json();

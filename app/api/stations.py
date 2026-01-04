@@ -3,18 +3,21 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from app import crud, models, schemas
 from app.database import get_db
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 @router.get("/stations", response_model=List[schemas.Station])
 def read_stations(
-    skip: int = 0,
-    limit: int = 100,
-    latitude: Optional[float] = Query(None, description="Широта центра поиска"),
-    longitude: Optional[float] = Query(None, description="Долгота центра поиска"),
-    radius_km: Optional[float] = Query(None, description="Радиус поиска в км"),
+    skip: int = Query(0, ge=0, description="Количество пропускаемых записей"),
+    limit: int = Query(100, le=1000, ge=1, description="Максимальное количество возвращаемых записей"),
+    latitude: Optional[float] = Query(None, ge=-90, le=90, description="Широта центра поиска"),
+    longitude: Optional[float] = Query(None, ge=-180, le=180, description="Долгота центра поиска"),
+    radius_km: Optional[float] = Query(None, gt=0, le=100, description="Радиус поиска в км"),
     connector_type: Optional[str] = Query(None, description="Тип разъема"),
-    min_power_kw: Optional[float] = Query(None, description="Минимальная мощность"),
+    min_power_kw: Optional[float] = Query(None, gt=0, description="Минимальная мощность"),
     db: Session = Depends(get_db)
 ):
     query = db.query(models.Station)
@@ -29,7 +32,7 @@ def read_stations(
 
     # Геофильтр (упрощенный, без реального расчета расстояния)
     # В реальном проекте использовать PostGIS или подобное
-    if latitude and longitude and radius_km:
+    if latitude is not None and longitude is not None and radius_km is not None:
         # Примерный фильтр по bounding box
         lat_min = latitude - (radius_km / 111.0)  # ~111 км на градус широты
         lat_max = latitude + (radius_km / 111.0)
@@ -40,38 +43,62 @@ def read_stations(
             models.Station.longitude.between(lon_min, lon_max)
         )
 
-    stations = query.offset(skip).limit(limit).all()
-    return stations
+    try:
+        stations = query.offset(skip).limit(limit).all()
+        logger.info(f"Найдено {len(stations)} станций")
+        return stations
+    except Exception as e:
+        logger.error(f"Ошибка при получении станций: {e}")
+        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера при получении данных")
 
 @router.get("/stations/{station_id}", response_model=schemas.Station)
 def read_station(station_id: int, db: Session = Depends(get_db)):
-    db_station = crud.get_station(db, station_id=station_id)
-    if db_station is None:
-        raise HTTPException(status_code=404, detail="Station not found")
-    return db_station
+    try:
+        # Проверка корректности ID
+        if station_id <= 0:
+            raise HTTPException(status_code=400, detail="ID станции должен быть положительным числом")
+        
+        db_station = crud.get_station(db, station_id=station_id)
+        if db_station is None:
+            logger.warning(f"Станция с ID {station_id} не найдена")
+            raise HTTPException(status_code=404, detail="Station not found")
+        return db_station
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Ошибка при получении станции {station_id}: {e}")
+        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
 
 @router.post("/stations/update_cache")
 async def update_cache(
     background_tasks: BackgroundTasks,
-    latitude: float = Query(55.7558, description="Широта центра"),
-    longitude: float = Query(37.6173, description="Долгота центра"),
-    radius: int = Query(50, description="Радиус в км"),
+    latitude: float = Query(55.7558, ge=-90, le=90, description="Широта центра"),
+    longitude: float = Query(37.6173, ge=-180, le=180, description="Долгота центра"),
+    radius: int = Query(50, ge=1, le=100, description="Радиус в км"),
     db: Session = Depends(get_db)
 ):
     """Обновление кэша данными из внешних API"""
-    background_tasks.add_task(update_stations_from_api, latitude, longitude, radius, db)
-    return {"message": "Cache update started in background"}
+    try:
+        background_tasks.add_task(update_stations_from_api, latitude, longitude, radius, db)
+        logger.info(f"Запущено обновление кэша для координат ({latitude}, {longitude}), радиус {radius} км")
+        return {"message": "Cache update started in background"}
+    except Exception as e:
+        logger.error(f"Ошибка при запуске обновления кэша: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка запуска обновления кэша")
 
 async def update_stations_from_api(lat: float, lon: float, radius: int, db: Session):
     """Фоновая задача для обновления станций из API"""
     from app.services.external_api import fetch_stations_from_open_charge_map
-    import logging
-    logger = logging.getLogger(__name__)
 
     try:
         logger.info(f"Starting cache update for lat={lat}, lon={lon}, radius={radius}")
         stations_data = await fetch_stations_from_open_charge_map(lat, lon, radius)
+        
+        if not stations_data:
+            logger.warning(f"Нет данных для обновления кэша для координат ({lat}, {lon})")
+            return
 
+        added_count = 0
         for data in stations_data:
             # Проверка существования станции
             existing = db.query(models.Station).filter(
@@ -82,9 +109,10 @@ async def update_stations_from_api(lat: float, lon: float, radius: int, db: Sess
             if not existing:
                 station = models.Station(**data)
                 db.add(station)
+                added_count += 1
 
         db.commit()
-        logger.info(f"Cache updated with {len(stations_data)} stations")
+        logger.info(f"Cache updated with {added_count} new stations out of {len(stations_data)} total")
     except Exception as e:
         logger.error(f"Error updating cache: {e}")
         db.rollback()
