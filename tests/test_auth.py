@@ -47,7 +47,7 @@ def test_user_registration():
     user_data = {
         "username": "newuser",
         "email": "newuser@example.com",
-        "password": "newpassword123",
+        "password": "newpassword",
         "is_active": True,
         "is_admin": False
     }
@@ -67,7 +67,7 @@ def test_user_login():
     user_data = {
         "username": "loginuser",
         "email": "login@example.com",
-        "password": "loginpassword123",
+        "password": "loginpassword",
         "is_active": True,
         "is_admin": False
     }
@@ -79,7 +79,7 @@ def test_user_login():
     # Now try to login
     login_data = {
         "username": "loginuser",
-        "password": "loginpassword123"
+        "password": "loginpassword"
     }
     
     response = client.post(
@@ -114,7 +114,7 @@ def test_get_current_user():
     user_data = {
         "username": "currentuser",
         "email": "current@example.com",
-        "password": "currentpassword123",
+        "password": "currentpassword",
         "is_active": True,
         "is_admin": False
     }
@@ -126,7 +126,7 @@ def test_get_current_user():
     # Login to get token
     login_data = {
         "username": "currentuser",
-        "password": "currentpassword123"
+        "password": "currentpassword"
     }
     
     login_response = client.post(
@@ -172,7 +172,7 @@ def test_duplicate_username_registration():
     user_data2 = {
         "username": "duplicateuser",  # Same username
         "email": "dup2@example.com",  # Different email
-        "password": "password123",
+        "password": "password",
         "is_active": True,
         "is_admin": False
     }
@@ -199,7 +199,7 @@ def test_duplicate_email_registration():
     user_data2 = {
         "username": "uniqueuser2",  # Different username
         "email": "same@example.com",  # Same email
-        "password": "password123",
+        "password": "password",
         "is_active": True,
         "is_admin": False
     }

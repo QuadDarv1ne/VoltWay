@@ -1,0 +1,217 @@
+2026-01-04 18:45:47,193 - app.main - INFO - Тестовые станции добавлены
+2026-01-04 18:45:47,266 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:45:47,291 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:45:47,297 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:45:47,297 - passlib.handlers.bcrypt - DEBUG - 'bcrypt' backend lacks $2$ support, enabling workaround
+2026-01-04 18:45:47,307 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:45:48,958 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:45:48,966 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:45:48,967 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:45:48,977 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:45:49,664 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:45:49,668 - python_multipart.multipart - DEBUG - Calling on_field_start with no data
+2026-01-04 18:45:49,669 - python_multipart.multipart - DEBUG - Calling on_field_name with data[0:8]
+2026-01-04 18:45:49,669 - python_multipart.multipart - DEBUG - Calling on_field_data with data[9:20]
+2026-01-04 18:45:49,669 - python_multipart.multipart - DEBUG - Calling on_field_end with no data
+2026-01-04 18:45:49,669 - python_multipart.multipart - DEBUG - Calling on_field_start with no data
+2026-01-04 18:45:49,669 - python_multipart.multipart - DEBUG - Calling on_field_name with data[21:29]
+2026-01-04 18:45:49,669 - python_multipart.multipart - DEBUG - Calling on_field_data with data[30:43]
+2026-01-04 18:45:49,670 - python_multipart.multipart - DEBUG - Calling on_field_end with no data
+2026-01-04 18:45:49,670 - python_multipart.multipart - DEBUG - Calling on_end with no data
+2026-01-04 18:45:49,673 - app.api.auth - WARNING - Failed login attempt for username: nonexistent
+2026-01-04 18:45:49,680 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:45:49,686 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:45:49,687 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:45:49,697 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:45:50,409 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:45:50,420 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:45:50,427 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:45:50,427 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:45:50,439 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:45:51,214 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:45:51,220 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:45:51,221 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:45:51,231 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:45:51,941 - app.utils.cache - INFO - Connected to Redis successfully
+2026-01-04 18:45:51,945 - app.utils.cache - ERROR - Failed to connect to Redis: Redis connection failed
+2026-01-04 18:45:56,045 - app.utils.cache - ERROR - Failed to connect to Redis: Error 10061 connecting to localhost:6379. Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение.
+2026-01-04 18:46:00,128 - app.utils.cache - ERROR - Failed to connect to Redis: Error 10061 connecting to localhost:6379. Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение.
+2026-01-04 18:46:04,222 - app.utils.cache - ERROR - Failed to connect to Redis: Error 10061 connecting to localhost:6379. Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение.
+2026-01-04 18:46:04,227 - app.utils.cache - INFO - Connected to Redis successfully
+2026-01-04 18:46:04,231 - app.utils.cache - INFO - Connected to Redis successfully
+2026-01-04 18:46:04,236 - app.utils.cache - INFO - Connected to Redis successfully
+2026-01-04 18:46:04,241 - app.utils.cache - INFO - Connected to Redis successfully
+2026-01-04 18:46:04,246 - app.utils.cache - INFO - Connected to Redis successfully
+2026-01-04 18:46:08,346 - app.utils.cache - ERROR - Failed to connect to Redis: Error 10061 connecting to localhost:6379. Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение.
+2026-01-04 18:46:12,434 - app.utils.cache - ERROR - Failed to connect to Redis: Error 10061 connecting to localhost:6379. Подключение не установлено, т.к. конечный компьютер отверг запрос на подключение.
+2026-01-04 18:46:12,438 - app.utils.cache - INFO - Connected to Redis successfully
+2026-01-04 18:46:12,439 - app.utils.cache - INFO - Cleared 2 station cache entries
+2026-01-04 18:46:12,442 - app.utils.cache - INFO - Connected to Redis successfully
+2026-01-04 18:46:12,472 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:46:12,482 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:46:12,491 - app.api.stations - INFO - Найдено 3 станций
+2026-01-04 18:46:12,512 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:46:12,517 - app.api.stations - INFO - Найдено 3 станций
+2026-01-04 18:46:12,522 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:46:12,536 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:46:12,545 - app.api.stations - INFO - Найдено 3 станций с геофильтрацией
+2026-01-04 18:46:12,553 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:46:12,561 - app.api.stations - INFO - Найдено 1 станций
+2026-01-04 18:46:12,569 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:46:12,576 - app.api.stations - INFO - Найдено 3 станций
+2026-01-04 18:46:12,584 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:46:12,590 - app.api.stations - INFO - Найдено 3 станций
+2026-01-04 18:46:12,598 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:46:12,607 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:46:12,618 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:47:51,702 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:47:51,721 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:47:51,723 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:47:51,723 - passlib.handlers.bcrypt - DEBUG - 'bcrypt' backend lacks $2$ support, enabling workaround
+2026-01-04 18:47:51,732 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:47:53,047 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:47:53,053 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:47:53,054 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:47:53,065 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:47:53,790 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:47:53,794 - python_multipart.multipart - DEBUG - Calling on_field_start with no data
+2026-01-04 18:47:53,795 - python_multipart.multipart - DEBUG - Calling on_field_name with data[0:8]
+2026-01-04 18:47:53,795 - python_multipart.multipart - DEBUG - Calling on_field_data with data[9:20]
+2026-01-04 18:47:53,795 - python_multipart.multipart - DEBUG - Calling on_field_end with no data
+2026-01-04 18:47:53,796 - python_multipart.multipart - DEBUG - Calling on_field_start with no data
+2026-01-04 18:47:53,796 - python_multipart.multipart - DEBUG - Calling on_field_name with data[21:29]
+2026-01-04 18:47:53,796 - python_multipart.multipart - DEBUG - Calling on_field_data with data[30:43]
+2026-01-04 18:47:53,797 - python_multipart.multipart - DEBUG - Calling on_field_end with no data
+2026-01-04 18:47:53,797 - python_multipart.multipart - DEBUG - Calling on_end with no data
+2026-01-04 18:47:53,802 - app.api.auth - WARNING - Failed login attempt for username: nonexistent
+2026-01-04 18:47:53,810 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:47:53,816 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:47:53,817 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:47:53,827 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:47:54,522 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:47:54,532 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:47:54,538 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:47:54,539 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:47:54,550 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:47:55,318 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:47:55,325 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:47:55,326 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:47:55,336 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:51:31,972 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:51:31,991 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:51:31,992 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:51:31,993 - passlib.handlers.bcrypt - DEBUG - 'bcrypt' backend lacks $2$ support, enabling workaround
+2026-01-04 18:51:32,001 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:51:33,306 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:51:33,312 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:51:33,313 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:51:33,323 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:51:33,991 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:51:33,995 - python_multipart.multipart - DEBUG - Calling on_field_start with no data
+2026-01-04 18:51:33,996 - python_multipart.multipart - DEBUG - Calling on_field_name with data[0:8]
+2026-01-04 18:51:33,996 - python_multipart.multipart - DEBUG - Calling on_field_data with data[9:20]
+2026-01-04 18:51:33,996 - python_multipart.multipart - DEBUG - Calling on_field_end with no data
+2026-01-04 18:51:33,996 - python_multipart.multipart - DEBUG - Calling on_field_start with no data
+2026-01-04 18:51:33,996 - python_multipart.multipart - DEBUG - Calling on_field_name with data[21:29]
+2026-01-04 18:51:33,997 - python_multipart.multipart - DEBUG - Calling on_field_data with data[30:43]
+2026-01-04 18:51:33,997 - python_multipart.multipart - DEBUG - Calling on_field_end with no data
+2026-01-04 18:51:33,997 - python_multipart.multipart - DEBUG - Calling on_end with no data
+2026-01-04 18:51:34,001 - app.api.auth - WARNING - Failed login attempt for username: nonexistent
+2026-01-04 18:51:34,010 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:51:34,016 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:51:34,016 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:51:34,027 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:51:34,706 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:51:34,717 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:51:34,724 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:51:34,725 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:51:34,735 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:51:35,436 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:51:35,443 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:51:35,443 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:51:35,453 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:52:53,491 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:52:53,509 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\maksi\AppData\Local\Programs\Python\Python314\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-01-04 18:52:53,510 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
+2026-01-04 18:52:53,511 - passlib.handlers.bcrypt - DEBUG - 'bcrypt' backend lacks $2$ support, enabling workaround
+2026-01-04 18:52:53,519 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
