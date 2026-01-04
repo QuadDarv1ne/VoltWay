@@ -1,8 +1,9 @@
 import httpx
 from app.core.config import settings
+from app.utils import logging as log_util
 import logging
 
-logger = logging.getLogger(__name__)
+logger = log_util.get_logger(__name__)
 
 async def fetch_stations_from_open_charge_map(lat: float, lon: float, radius: int = 10):
     """

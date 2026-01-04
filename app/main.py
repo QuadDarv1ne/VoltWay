@@ -6,12 +6,18 @@ from app.api import stations
 from app.core.config import settings
 from app.database import engine
 from app.models import Base
+from app.utils import logging
+
+# Setup logging
+logging.setup_logging()
 
 # Создание таблиц
 Base.metadata.create_all(bind=engine)
 
 # Добавление тестовых данных
 def add_sample_data():
+    import logging as logger_module  # Avoid naming conflict
+    logger = logger_module.getLogger(__name__)
     from app.database import SessionLocal
     from app.models.station import Station
     db = SessionLocal()
@@ -56,9 +62,9 @@ def add_sample_data():
                 station = Station(**station_data)
                 db.add(station)
             db.commit()
-            print("Тестовые станции добавлены")
+            logger.info("Тестовые станции добавлены")
     except Exception as e:
-        print(f"Ошибка добавления данных: {e}")
+        logger.error(f"Ошибка добавления данных: {e}")
         db.rollback()
     finally:
         db.close()

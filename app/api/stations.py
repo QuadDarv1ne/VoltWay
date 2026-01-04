@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from app import crud, models, schemas
 from app.database import get_db
+from app.utils import geo, cache
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,22 +31,43 @@ def read_stations(
     if min_power_kw:
         query = query.filter(models.Station.power_kw >= min_power_kw)
 
-    # Геофильтр (упрощенный, без реального расчета расстояния)
-    # В реальном проекте использовать PostGIS или подобное
-    if latitude is not None and longitude is not None and radius_km is not None:
-        # Примерный фильтр по bounding box
-        lat_min = latitude - (radius_km / 111.0)  # ~111 км на градус широты
-        lat_max = latitude + (radius_km / 111.0)
-        lon_min = longitude - (radius_km / (111.0 * abs(latitude)))  # Коррекция для долготы
-        lon_max = longitude + (radius_km / (111.0 * abs(latitude)))
-        query = query.filter(
-            models.Station.latitude.between(lat_min, lat_max),
-            models.Station.longitude.between(lon_min, lon_max)
-        )
-
     try:
-        stations = query.offset(skip).limit(limit).all()
-        logger.info(f"Найдено {len(stations)} станций")
+        # Generate cache key
+        cache_key = cache.cache.get_station_cache_key(
+            latitude, longitude, radius_km, connector_type, min_power_kw, skip, limit
+        )
+        
+        # Try to get from cache first
+        cached_result = cache.cache.get(cache_key)
+        if cached_result is not None:
+            logger.info(f"Cache hit for key: {cache_key}")
+            return cached_result
+        
+        # Проверяем, есть ли геофильтр
+        if latitude is not None and longitude is not None and radius_km is not None:
+            # Для геофильтра используем специальную функцию, так как нужна точная фильтрация по расстоянию
+            filtered_stations = geo.get_geospatial_filter(db, latitude, longitude, radius_km)
+            
+            # Применяем другие фильтры к отфильтрованным по геолокации станциям
+            if connector_type:
+                filtered_stations = [s for s in filtered_stations if connector_type.lower() in s.connector_type.lower()]
+            if min_power_kw:
+                filtered_stations = [s for s in filtered_stations if s.power_kw >= min_power_kw]
+            
+            # Применяем пагинацию
+            start_idx = skip
+            end_idx = skip + limit
+            stations = filtered_stations[start_idx:end_idx]
+            
+            logger.info(f"Найдено {len(stations)} станций с геофильтрацией")
+        else:
+            # Без геофильтра используем обычный SQL запрос
+            stations = query.offset(skip).limit(limit).all()
+            logger.info(f"Найдено {len(stations)} станций")
+        
+        # Cache the result for 10 minutes
+        cache.cache.set(cache_key, stations, expire=600)
+        
         return stations
     except Exception as e:
         logger.error(f"Ошибка при получении станций: {e}")
@@ -112,6 +134,8 @@ async def update_stations_from_api(lat: float, lon: float, radius: int, db: Sess
                 added_count += 1
 
         db.commit()
+        # Clear the station cache after updating
+        cache.cache.clear_station_cache()
         logger.info(f"Cache updated with {added_count} new stations out of {len(stations_data)} total")
     except Exception as e:
         logger.error(f"Error updating cache: {e}")
