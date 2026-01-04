@@ -12,6 +12,9 @@ from app.utils import logging
 # Setup logging
 logging.setup_logging()
 
+# Import all models before creating tables
+from app.models import User  # Make sure all models are imported
+
 # Создание таблиц
 Base.metadata.create_all(bind=engine)
 
