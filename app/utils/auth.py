@@ -36,7 +36,7 @@ logger = logging.get_logger(__name__)
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain password against a hashed password"""
     try:
-        return pwd_context.verify(plain_password, hashed_password)
+        return verify_password_direct(plain_password, hashed_password)
     except Exception as e:
         logger.error(f"Error verifying password: {e}")
         return False
@@ -56,7 +56,7 @@ def get_password_hash(password: str) -> str:
         else:
             truncated_password = password
         
-        return pwd_context.hash(truncated_password)
+        return hash_password_direct(truncated_password)
     except Exception as e:
         logger.error(f"Error hashing password: {e}")
         raise

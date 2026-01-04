@@ -215,3 +215,21 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-01-04 18:52:53,510 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '<unknown>'
 2026-01-04 18:52:53,511 - passlib.handlers.bcrypt - DEBUG - 'bcrypt' backend lacks $2$ support, enabling workaround
 2026-01-04 18:52:53,519 - app.utils.auth - ERROR - Error hashing password: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2026-01-04 18:57:44,309 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:58:15,349 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:58:15,362 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:58:15,373 - app.api.stations - INFO - Найдено 3 станций
+2026-01-04 18:58:15,383 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:58:15,389 - app.api.stations - INFO - Найдено 3 станций
+2026-01-04 18:58:15,394 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:58:15,412 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:58:15,420 - app.api.stations - INFO - Найдено 3 станций с геофильтрацией
+2026-01-04 18:58:15,429 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:58:15,436 - app.api.stations - INFO - Найдено 1 станций
+2026-01-04 18:58:15,444 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:58:15,451 - app.api.stations - INFO - Найдено 3 станций
+2026-01-04 18:58:15,459 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:58:15,465 - app.api.stations - INFO - Найдено 3 станций
+2026-01-04 18:58:15,475 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:58:15,484 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-04 18:58:15,497 - asyncio - DEBUG - Using proactor: IocpProactor
