@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoltWay - Карта зарядных станций</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+</head>
+<body>
+    <header>
+        <h1>VoltWay - Зарядные станции для электромобилей</h1>
+    </header>
+
+    <div class="controls">
+        <input type="number" id="lat" placeholder="Широта" step="0.0001" value="55.7558">
+        <input type="number" id="lon" placeholder="Долгота" step="0.0001" value="37.6173">
+        <input type="number" id="radius" placeholder="Радиус (км)" value="10">
+        <button id="search-btn">Поиск</button>
+
+        <select id="connector-filter">
+            <option value="all">Все разъемы</option>
+            <option value="CCS">CCS</option>
+            <option value="CHAdeMO">CHAdeMO</option>
+            <option value="Type 2">Type 2</option>
+        </select>
+
+        <button id="update-cache-btn">Обновить данные</button>
+        <span id="status"></span>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
