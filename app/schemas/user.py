@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr, validator
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 
 class UserBase(BaseModel):
@@ -12,11 +13,12 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    
-    @validator('username')
-    def validate_username(cls, v):
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v: str) -> str:
         if len(v) < 3 or len(v) > 50:
-            raise ValueError('Username must be between 3 and 50 characters')
+            raise ValueError("Username must be between 3 and 50 characters")
         return v
 
 
@@ -32,8 +34,7 @@ class UserInDB(UserBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserLogin(BaseModel):

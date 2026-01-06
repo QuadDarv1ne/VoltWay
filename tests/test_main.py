@@ -1,10 +1,13 @@
-import pytest
-from app.main import app
-from fastapi.testclient import TestClient
-from app.database import SessionLocal, engine
-from app.models import Base
-from app import crud, schemas
 import json
+
+import pytest
+from fastapi.testclient import TestClient
+
+from app import crud, schemas
+from app.database import SessionLocal, engine
+from app.main import app
+from app.models import Base
+
 
 class TestClientWithDB(TestClient):
     def __init__(self, app):
@@ -15,6 +18,7 @@ class TestClientWithDB(TestClient):
 
 client = TestClient(app)
 
+
 def test_root_endpoint():
     """Test the root endpoint"""
     response = client.get("/api/v1/")
@@ -22,6 +26,15 @@ def test_root_endpoint():
     data = response.json()
     assert "message" in data
     assert "Welcome to VoltWay API" in data["message"]
+
+
+def test_health_endpoint():
+    """Test the health check endpoint"""
+    response = client.get("/health")
+    assert response.status_code == 200
+    data = response.json()
+    assert "status" in data
+    assert data["status"] == "healthy"
 
 
 def test_get_stations():
@@ -42,16 +55,16 @@ def test_get_station_by_id():
         "longitude": 37.6173,
         "connector_type": "CCS",
         "power_kw": 50.0,
-        "status": "available"
+        "status": "available",
     }
-    
+
     # Since we can't create stations through API yet, we'll test with existing stations
     # Get stations and test with the first one if available
     response = client.get("/api/v1/stations")
     if response.status_code == 200:
         stations = response.json()
         if len(stations) > 0:
-            station_id = stations[0]['id']
+            station_id = stations[0]["id"]
             response = client.get(f"/api/v1/stations/{station_id}")
             assert response.status_code == 200
             data = response.json()
@@ -61,7 +74,9 @@ def test_get_station_by_id():
 
 def test_station_geofilter():
     """Test station filtering by geographic location"""
-    response = client.get("/api/v1/stations?latitude=55.7558&longitude=37.6173&radius_km=10")
+    response = client.get(
+        "/api/v1/stations?latitude=55.7558&longitude=37.6173&radius_km=10"
+    )
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
@@ -96,28 +111,37 @@ def test_invalid_parameters():
     """Test invalid parameter validation"""
     # Test invalid latitude
     response = client.get("/api/v1/stations?latitude=100")  # Invalid latitude
-    assert response.status_code in [200, 422]  # May return empty list or validation error
-    
+    assert response.status_code in [
+        200,
+        422,
+    ]  # May return empty list or validation error
+
     # Test invalid longitude
     response = client.get("/api/v1/stations?longitude=200")  # Invalid longitude
-    assert response.status_code in [200, 422]  # May return empty list or validation error
+    assert response.status_code in [
+        200,
+        422,
+    ]  # May return empty list or validation error
 
 
 def test_auth_endpoints_exist():
     """Test that authentication endpoints exist"""
     # Test that the token endpoint exists (should return 422 for missing form data, not 404)
     response = client.post("/api/v1/token")
-    assert response.status_code in [401, 422]  # Either unauthorized or validation error, but not 404
+    assert response.status_code in [
+        401,
+        422,
+    ]  # Either unauthorized or validation error, but not 404
 
 
 def test_geo_utils():
     """Test the geospatial utility functions"""
     from app.utils import geo
-    
+
     # Test haversine distance calculation
     distance = geo.haversine_distance(55.7558, 37.6173, 55.7558, 37.6174)
     assert isinstance(distance, float)
     assert distance >= 0
-    
+
     # The distance between two nearby points in Moscow should be small
     assert distance < 1  # Less than 1 km for these coordinates

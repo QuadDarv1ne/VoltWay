@@ -1,3 +1,3 @@
-from . import geo, cache, logging, auth
+from . import auth, cache, geo, logging
 
 __all__ = ["geo", "cache", "logging", "auth"]

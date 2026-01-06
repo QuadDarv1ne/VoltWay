@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 from app.utils.auth import get_password_hash
@@ -32,7 +33,7 @@ def create_user(db: Session, user: UserCreate):
         email=user.email,
         hashed_password=hashed_password,
         is_active=user.is_active,
-        is_admin=user.is_admin
+        is_admin=user.is_admin,
     )
     db.add(db_user)
     db.commit()
@@ -45,11 +46,11 @@ def update_user(db: Session, user_id: int, user_update: UserUpdate):
     db_user = db.query(User).filter(User.id == user_id).first()
     if not db_user:
         return None
-    
+
     update_data = user_update.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_user, field, value)
-    
+
     db.commit()
     db.refresh(db_user)
     return db_user
@@ -60,7 +61,7 @@ def delete_user(db: Session, user_id: int):
     db_user = db.query(User).filter(User.id == user_id).first()
     if not db_user:
         return None
-    
+
     db.delete(db_user)
     db.commit()
     return db_user
@@ -71,14 +72,15 @@ def authenticate_user(db: Session, username: str, password: str):
     user = get_user_by_username(db, username)
     if not user or not user.is_active:
         return None
-    
+
     if not verify_password(password, user.hashed_password):
         return None
-    
+
     return user
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain password against a hashed password"""
     from app.utils.auth import verify_password as auth_verify_password
+
     return auth_verify_password(plain_password, hashed_password)

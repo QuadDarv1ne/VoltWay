@@ -1,9 +1,12 @@
-import httpx
-from app.core.config import settings
-from app.utils import logging as log_util
 import logging
 
+import httpx
+
+from app.core.config import settings
+from app.utils import logging as log_util
+
 logger = log_util.get_logger(__name__)
+
 
 async def fetch_stations_from_open_charge_map(lat: float, lon: float, radius: int = 10):
     """
@@ -21,7 +24,7 @@ async def fetch_stations_from_open_charge_map(lat: float, lon: float, radius: in
         "distance": radius,
         "distanceunit": "KM",
         "key": settings.open_charge_map_api_key,
-        "maxresults": 100
+        "maxresults": 100,
     }
 
     try:
@@ -34,7 +37,9 @@ async def fetch_stations_from_open_charge_map(lat: float, lon: float, radius: in
             stations = []
             for item in data:
                 station = {
-                    "title": item.get("AddressInfo", {}).get("Title", "Unknown Station"),
+                    "title": item.get("AddressInfo", {}).get(
+                        "Title", "Unknown Station"
+                    ),
                     "address": f"{item.get('AddressInfo', {}).get('AddressLine1', '')}, {item.get('AddressInfo', {}).get('Town', '')}",
                     "latitude": item.get("AddressInfo", {}).get("Latitude"),
                     "longitude": item.get("AddressInfo", {}).get("Longitude"),
@@ -42,7 +47,7 @@ async def fetch_stations_from_open_charge_map(lat: float, lon: float, radius: in
                     "power_kw": get_max_power(item.get("Connections", [])),
                     "status": "unknown",  # Open Charge Map не всегда предоставляет статус
                     "price": None,
-                    "hours": item.get("AddressInfo", {}).get("AccessComments")
+                    "hours": item.get("AddressInfo", {}).get("AccessComments"),
                 }
                 if station["latitude"] and station["longitude"]:
                     stations.append(station)
@@ -51,6 +56,7 @@ async def fetch_stations_from_open_charge_map(lat: float, lon: float, radius: in
     except Exception as e:
         logger.error(f"Error fetching from Open Charge Map: {e}")
         return []
+
 
 def get_connector_type(connections):
     """Определение типа разъема из списка подключений"""
@@ -66,10 +72,12 @@ def get_connector_type(connections):
                 types.append("Type 2")
     return ", ".join(set(types)) if types else "Unknown"
 
+
 def get_max_power(connections):
     """Получение максимальной мощности из подключений"""
     powers = [conn.get("PowerKW", 0) for conn in connections if conn.get("PowerKW")]
     return max(powers) if powers else 0
+
 
 async def fetch_ev_charger_info(query: str):
     """

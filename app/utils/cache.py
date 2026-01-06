@@ -1,11 +1,14 @@
 import json
-import redis
-import pickle
-from typing import Optional, Any
-from app.core.config import settings
 import logging
+import pickle
+from typing import Any, Optional
+
+import redis
+
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
 
 class CacheManager:
     def __init__(self):
@@ -22,7 +25,7 @@ class CacheManager:
         """Get value from cache"""
         if not self.redis_client:
             return None
-        
+
         try:
             value = self.redis_client.get(key)
             if value:
@@ -36,7 +39,7 @@ class CacheManager:
         """Set value in cache with expiration time in seconds"""
         if not self.redis_client:
             return False
-        
+
         try:
             serialized_value = pickle.dumps(value)
             result = self.redis_client.setex(key, expire, serialized_value)
@@ -49,7 +52,7 @@ class CacheManager:
         """Delete value from cache"""
         if not self.redis_client:
             return False
-        
+
         try:
             result = self.redis_client.delete(key)
             return result > 0
@@ -57,18 +60,25 @@ class CacheManager:
             logger.error(f"Error deleting value from cache: {e}")
             return False
 
-    def get_station_cache_key(self, latitude: float, longitude: float, radius_km: float, 
-                             connector_type: Optional[str], min_power_kw: float, 
-                             skip: int, limit: int) -> str:
+    def get_station_cache_key(
+        self,
+        latitude: float,
+        longitude: float,
+        radius_km: float,
+        connector_type: Optional[str],
+        min_power_kw: float,
+        skip: int,
+        limit: int,
+    ) -> str:
         """Generate cache key for station search"""
         params = {
-            'lat': latitude,
-            'lon': longitude, 
-            'radius': radius_km,
-            'connector': connector_type,
-            'min_power': min_power_kw,
-            'skip': skip,
-            'limit': limit
+            "lat": latitude,
+            "lon": longitude,
+            "radius": radius_km,
+            "connector": connector_type,
+            "min_power": min_power_kw,
+            "skip": skip,
+            "limit": limit,
         }
         # Create a hashable representation of the parameters
         key_parts = [f"{k}:{v}" for k, v in params.items() if v is not None]
@@ -78,7 +88,7 @@ class CacheManager:
         """Clear all station-related cache entries"""
         if not self.redis_client:
             return 0
-        
+
         try:
             # Find and delete all keys that start with "stations:"
             keys = self.redis_client.keys("stations:*")
@@ -90,6 +100,7 @@ class CacheManager:
         except Exception as e:
             logger.error(f"Error clearing station cache: {e}")
             return 0
+
 
 # Global cache instance
 cache = CacheManager()

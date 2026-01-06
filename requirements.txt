@@ -14,3 +14,8 @@ pytest-asyncio==0.21.1
 bcrypt==4.0.1
 passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
+# Development dependencies
+black==23.12.1
+isort==5.13.2
+flake8==7.0.0
+mypy==1.8.0

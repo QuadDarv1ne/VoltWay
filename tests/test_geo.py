@@ -1,4 +1,5 @@
 import pytest
+
 from app.utils import geo
 
 
@@ -18,7 +19,7 @@ def test_haversine_distance_symmetric():
     """Test that distance calculation is symmetric"""
     dist1 = geo.haversine_distance(55.7558, 37.6173, 55.7559, 37.6174)
     dist2 = geo.haversine_distance(55.7559, 37.6174, 55.7558, 37.6173)
-    
+
     # Allow for small floating point differences
     assert abs(dist1 - dist2) < 0.0001
 
@@ -49,9 +50,10 @@ def test_get_geospatial_filter_empty():
     # This test will need to be implemented with a mock database session
     # For now, we'll just test that the function exists and can be called
     from unittest.mock import MagicMock
+
     mock_db = MagicMock()
     mock_db.query.return_value.filter.return_value.all.return_value = []
-    
+
     result = geo.get_geospatial_filter(mock_db, 55.7558, 37.6173, 1.0)
     assert isinstance(result, list)
 
@@ -61,8 +63,12 @@ def test_haversine_distance_invalid_coordinates():
     # These should not raise exceptions
     try:
         # Test with coordinates that are valid but extreme
-        distance = geo.haversine_distance(-90, -180, 90, 180)  # From south pole to north pole
+        distance = geo.haversine_distance(
+            -90, -180, 90, 180
+        )  # From south pole to north pole
         assert isinstance(distance, float)
         assert distance > 0
     except Exception:
-        pytest.fail("haversine_distance should not raise exception for valid coordinates")
+        pytest.fail(
+            "haversine_distance should not raise exception for valid coordinates"
+        )
