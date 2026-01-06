@@ -5,7 +5,9 @@ class Base(DeclarativeBase):
     pass
 
 
-from .station import Station
-from .user import User
+from . import station
+from . import user
+
+__all__ = ["Base", "station", "user"]
 
 __all__ = ["Station", "User", "Base"]

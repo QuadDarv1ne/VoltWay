@@ -69,9 +69,3 @@ def add_sample_stations():
 
 if __name__ == "__main__":
     add_sample_stations()
-        db.rollback()
-    finally:
-        db.close()
-
-if __name__ == "__main__":
-    add_sample_stations()

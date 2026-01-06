@@ -34,15 +34,15 @@ def read_stations(
     ),
     db: Session = Depends(get_db),
 ):
-    query = db.query(models.Station)
+    query = db.query(models.station.Station)
 
     # Фильтр по типу разъема
     if connector_type:
-        query = query.filter(models.Station.connector_type.ilike(f"%{connector_type}%"))
+        query = query.filter(models.station.Station.connector_type.ilike(f"%{connector_type}%"))
 
     # Фильтр по мощности
     if min_power_kw:
-        query = query.filter(models.Station.power_kw >= min_power_kw)
+        query = query.filter(models.station.Station.power_kw >= min_power_kw)
 
     try:
         # Generate cache key
@@ -58,7 +58,8 @@ def read_stations(
 
         # Проверяем, есть ли геофильтр
         if latitude is not None and longitude is not None and radius_km is not None:
-            # Для геофильтра используем специальную функцию, так как нужна точная фильтрация по расстоянию
+            # Для геофильтра используем специальную функцию, так как нужна точная
+            # фильтрация по расстоянию
             filtered_stations = geo.get_geospatial_filter(
                 db, latitude, longitude, radius_km
             )
@@ -132,7 +133,8 @@ async def update_cache(
             update_stations_from_api, latitude, longitude, radius, db
         )
         logger.info(
-            f"Запущено обновление кэша для координат ({latitude}, {longitude}), радиус {radius} км"
+            f"Запущено обновление кэша для координат ({latitude}, {longitude}), "
+            f"радиус {radius} км"
         )
         return {"message": "Cache update started in background"}
     except Exception as e:
@@ -158,16 +160,16 @@ async def update_stations_from_api(lat: float, lon: float, radius: int, db: Sess
         for data in stations_data:
             # Проверка существования станции
             existing = (
-                db.query(models.Station)
+                db.query(models.station.Station)
                 .filter(
-                    models.Station.latitude == data["latitude"],
-                    models.Station.longitude == data["longitude"],
+                    models.station.Station.latitude == data["latitude"],
+                    models.station.Station.longitude == data["longitude"],
                 )
                 .first()
             )
 
             if not existing:
-                station = models.Station(**data)
+                station = models.station.Station(**data)
                 db.add(station)
                 added_count += 1
 
@@ -175,7 +177,8 @@ async def update_stations_from_api(lat: float, lon: float, radius: int, db: Sess
         # Clear the station cache after updating
         cache.cache.clear_station_cache()
         logger.info(
-            f"Cache updated with {added_count} new stations out of {len(stations_data)} total"
+            f"Cache updated with {added_count} new stations out of "
+            f"{len(stations_data)} total"
         )
     except Exception as e:
         logger.error(f"Error updating cache: {e}")

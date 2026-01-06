@@ -40,7 +40,10 @@ async def fetch_stations_from_open_charge_map(lat: float, lon: float, radius: in
                     "title": item.get("AddressInfo", {}).get(
                         "Title", "Unknown Station"
                     ),
-                    "address": f"{item.get('AddressInfo', {}).get('AddressLine1', '')}, {item.get('AddressInfo', {}).get('Town', '')}",
+                    "address": (
+                        f"{item.get('AddressInfo', {}).get('AddressLine1', '')}, "
+                        f"{item.get('AddressInfo', {}).get('Town', '')}"
+                    ),
                     "latitude": item.get("AddressInfo", {}).get("Latitude"),
                     "longitude": item.get("AddressInfo", {}).get("Longitude"),
                     "connector_type": get_connector_type(item.get("Connections", [])),
