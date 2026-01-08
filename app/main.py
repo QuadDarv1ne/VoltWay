@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.services.notifications import notification_service
 from app.utils import logging
 from app.utils.cache_cleanup import cleanup_manager
+from app.utils.temp_cleanup import cleanup_on_shutdown
 
 # Setup logging
 logging.setup_logging()
@@ -74,6 +75,13 @@ async def shutdown_event():
     """Shutdown event handler"""
     cleanup_manager.stop_cleanup_scheduler()
     print("Cache cleanup scheduler stopped")
+    
+    # Clean up temporary files
+    try:
+        cleaned_count, error_count = cleanup_on_shutdown()
+        print(f"Temporary file cleanup: {cleaned_count} items cleaned, {error_count} errors")
+    except Exception as e:
+        print(f"Error during temporary file cleanup: {e}")
 
 
 @app.get("/")

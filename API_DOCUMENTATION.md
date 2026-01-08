@@ -289,6 +289,59 @@ Response:
 }
 ```
 
+## Temporary Files Management Endpoints
+
+### Get Temporary Files Statistics
+**GET** `/monitoring/temp-files/stats`
+
+Response:
+```json
+{
+  "message": "Temporary files statistics",
+  "stats": {
+    "temp_directories": [
+      {
+        "path": "C:\\Users\\user\\project\\tmp",
+        "size_bytes": 102400
+      }
+    ],
+    "temp_files": [
+      {
+        "path": "C:\\Users\\user\\project\\temp_file.tmp",
+        "size_bytes": 1024
+      }
+    ],
+    "total_size_bytes": 103424
+  },
+  "total_size_mb": 0.1
+}
+```
+
+### Manual Temporary Files Cleanup
+**POST** `/monitoring/temp-files/cleanup`
+
+Response:
+```json
+{
+  "message": "Temporary files cleanup completed",
+  "cleaned_count": 15,
+  "error_count": 0,
+  "errors": []
+}
+```
+
+### Simulate Shutdown Cleanup
+**POST** `/monitoring/temp-files/cleanup-on-shutdown`
+
+Response:
+```json
+{
+  "message": "Shutdown cleanup simulation completed",
+  "cleaned_count": 23,
+  "error_count": 1
+}
+```
+
 ## User Management Endpoints
 
 ### Create New User

@@ -5,6 +5,7 @@ from app.database import get_db
 from app.utils.profiler import query_profiler
 from app.utils.cache import cache
 from app.utils.cache_cleanup import cleanup_manager
+from app.utils.temp_cleanup import temp_cleanup_manager, cleanup_on_shutdown
 
 router = APIRouter(prefix="/monitoring", tags=["monitoring"])
 
@@ -170,6 +171,49 @@ async def manual_cache_cleanup():
         return {
             "message": "Manual cache cleanup completed",
             "stats": stats
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.get("/temp-files/stats")
+async def get_temp_files_stats():
+    """Get statistics about temporary files"""
+    try:
+        stats = temp_cleanup_manager.get_temp_stats()
+        return {
+            "message": "Temporary files statistics",
+            "stats": stats,
+            "total_size_mb": round(stats.get("total_size_bytes", 0) / (1024 * 1024), 2)
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.post("/temp-files/cleanup")
+async def manual_temp_files_cleanup():
+    """Manually trigger temporary files cleanup"""
+    try:
+        cleaned_count, errors = temp_cleanup_manager.cleanup_temp_files()
+        return {
+            "message": "Temporary files cleanup completed",
+            "cleaned_count": cleaned_count,
+            "error_count": len(errors),
+            "errors": errors[:10]  # Return first 10 errors
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.post("/temp-files/cleanup-on-shutdown")
+async def simulate_shutdown_cleanup():
+    """Simulate the shutdown cleanup process"""
+    try:
+        cleaned_count, error_count = cleanup_on_shutdown()
+        return {
+            "message": "Shutdown cleanup simulation completed",
+            "cleaned_count": cleaned_count,
+            "error_count": error_count
         }
     except Exception as e:
         return {"error": str(e)}
