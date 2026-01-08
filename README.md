@@ -108,12 +108,47 @@
    uvicorn app.main:app --reload
    ```
 
+### Альтернативные способы запуска
+
+#### Через Docker (рекомендуется для разработки):
+
+```bash
+# Запуск с минимальными зависимостями (SQLite, без Redis)
+docker-compose -f docker-compose.dev.yml up --build
+
+# Запуск с полным стеком (PostgreSQL, Redis)
+docker-compose up -d
+
+# Инициализация базы данных
+docker-compose run --rm app alembic upgrade head
+docker-compose run --rm app python add_sample_data.py
+```
+
+#### Использование Makefile:
+
+```bash
+# Установка зависимостей
+make install
+
+# Запуск разработки
+make dev-run
+
+# Запуск тестов
+make test
+
+# Просмотр логов
+make logs
+
+# Очистка артефактов
+make clean
+```
+
 7. **Откройте в браузере:**
 
    - **Приложение:** http://localhost:8000
    - **Документация API (Swagger):** http://localhost:8000/docs
    - **Альтернативная документация (ReDoc):** http://localhost:8000/redoc
-   - **Health check:** http://localhost:8000/health
+   - **Health check:** http://localhost:8000/api/v1/monitoring/health
 
 ## 📁 Структура проекта
 

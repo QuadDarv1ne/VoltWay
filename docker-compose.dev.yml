@@ -1,0 +1,27 @@
+version: '3.8'
+
+# Simplified docker-compose for development
+# Uses SQLite and no Redis for easier local setup
+
+services:
+  app:
+    build: .
+    container_name: voltway-dev
+    environment:
+      - DATABASE_URL=sqlite:///./voltway.db
+      - REDIS_URL=
+      - SECRET_KEY=dev_secret_key_for_development_only
+      - DEBUG=True
+      - ACCESS_TOKEN_EXPIRE_MINUTES=60
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+    networks:
+      - voltway-dev-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+networks:
+  voltway-dev-network:
+    driver: bridge
