@@ -16,7 +16,7 @@ class TestClientWithDB(TestClient):
         Base.metadata.create_all(bind=engine)
 
 
-client = TestClient(app)
+client = TestClient(app=app)
 
 
 def test_root_endpoint():
