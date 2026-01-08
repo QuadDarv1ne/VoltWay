@@ -4,6 +4,40 @@ document.addEventListener('DOMContentLoaded', function() {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
+    // WebSocket connection for notifications
+    const socket = io('http://localhost:8000/ws');
+    
+    socket.on('connect', function() {
+        console.log('Connected to notification service');
+        showNotification('Соединение установлено', 'success');
+    });
+    
+    socket.on('disconnect', function() {
+        console.log('Disconnected from notification service');
+        showNotification('Потеряно соединение', 'warning');
+    });
+    
+    socket.on('notification', function(data) {
+        console.log('Received notification:', data);
+        showNotification(data.message || 'Обновление станции', 'info');
+        
+        // Reload stations if it's a station update
+        if (data.type === 'station_update' || data.type === 'availability_change') {
+            const lat = parseFloat(document.getElementById('lat').value) || 55.7558;
+            const lon = parseFloat(document.getElementById('lon').value) || 37.6173;
+            const radius = parseFloat(document.getElementById('radius').value) || 10;
+            loadStations(lat, lon, radius);
+        }
+    });
+    
+    socket.on('subscribed', function(data) {
+        console.log('Subscribed to station:', data.station_id);
+    });
+    
+    socket.on('unsubscribed', function(data) {
+        console.log('Unsubscribed from station:', data.station_id);
+    });
+
     // Группа кластеров для маркеров станций
     const markers = L.markerClusterGroup();
     map.addLayer(markers);
@@ -75,6 +109,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         ${station.hours ? `<p><strong>Часы работы:</strong> ${station.hours}</p>` : ''}
                         <button onclick="toggleFavorite(${station.id})" class="favorite-btn" id="fav-${station.id}">
                             ★ Избранное
+                        </button>
+                        <button onclick="toggleSubscription(${station.id})" class="subscribe-btn" id="sub-${station.id}">
+                            🔔 Подписаться
                         </button>
                     </div>
                 `);
@@ -193,5 +230,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Ошибка проверки избранного:', error);
             }
         }
+    }
+
+    // Функции для подписки на уведомления
+    window.toggleSubscription = function(stationId) {
+        const btn = document.getElementById(`sub-${stationId}`);
+        
+        if (btn.textContent.includes('Подписаться')) {
+            // Подписаться
+            socket.emit('subscribe_to_station', {station_id: stationId});
+            btn.textContent = '🔔 Отписаться';
+            btn.style.background = '#4CAF50';
+            btn.style.color = 'white';
+        } else {
+            // Отписаться
+            socket.emit('unsubscribe_from_station', {station_id: stationId});
+            btn.textContent = '🔕 Подписаться';
+            btn.style.background = '#f44336';
+            btn.style.color = 'white';
+        }
+    };
+
+    // Функция отображения уведомлений
+    function showNotification(message, type = 'info') {
+        // Создаем элемент уведомления
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <span>${message}</span>
+            <button onclick="this.parentElement.remove()" class="close-btn">×</button>
+        `;
+        
+        // Добавляем в DOM
+        document.body.appendChild(notification);
+        
+        // Автоматическое удаление через 5 секунд
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 5000);
     }
 });
