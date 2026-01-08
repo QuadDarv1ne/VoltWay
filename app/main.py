@@ -27,9 +27,7 @@ app = FastAPI(
 # Initialize notification service later in lifecycle
 # notification_service.initialize_sockets(app)
 
-# Start automatic cache cleanup
-import asyncio
-asyncio.create_task(cleanup_manager.start_cleanup_scheduler())
+# Start automatic cache cleanup will be handled by FastAPI startup event
 
 # CORS - Allow localhost for development; configure for production
 app.add_middleware(
@@ -60,6 +58,22 @@ app.include_router(monitoring.router, prefix="/api/v1", tags=["monitoring"])
 
 # Note: Database tables should be created via Alembic migrations
 # Base.metadata.create_all(bind=engine)  # Removed for production best practices
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Startup event handler"""
+    # Start cache cleanup scheduler
+    import asyncio
+    asyncio.create_task(cleanup_manager.start_cleanup_scheduler())
+    print("Cache cleanup scheduler started")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Shutdown event handler"""
+    cleanup_manager.stop_cleanup_scheduler()
+    print("Cache cleanup scheduler stopped")
 
 
 @app.get("/")
