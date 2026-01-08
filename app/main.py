@@ -47,7 +47,7 @@ templates = Jinja2Templates(directory="app/templates")
 
 # Роутеры
 app.include_router(stations.router, prefix="/api/v1", tags=["stations"])
-app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
+# app.include_router(auth.router, prefix="/api/v1", tags=["auth"])  # Temporarily disabled
 app.include_router(favorites.router, prefix="/api/v1", tags=["favorites"])
 app.include_router(notifications.router, prefix="/api/v1", tags=["notifications"])
 
