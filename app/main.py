@@ -23,8 +23,8 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Initialize notification service
-notification_service.initialize_sockets(app)
+# Initialize notification service later in lifecycle
+# notification_service.initialize_sockets(app)
 # CORS - Allow localhost for development; configure for production
 app.add_middleware(
     CORSMiddleware,
