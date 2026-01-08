@@ -9,6 +9,7 @@ from passlib.context import CryptContext
 from app.core.config import settings
 from app.schemas.user import TokenData
 from app.utils import logging
+from app.utils.logging import log_security_event
 
 
 # Create a custom hashing function using bcrypt directly
@@ -27,8 +28,10 @@ def verify_password_direct(plain_password: str, hashed_password: str) -> bool:
     try:
         plain_bytes = plain_password.encode("utf-8")
         hash_bytes = hashed_password.encode("utf-8")
-        return bcrypt.checkpw(plain_bytes, hash_bytes)
-    except Exception:
+        result = bcrypt.checkpw(plain_bytes, hash_bytes)
+        return result
+    except Exception as e:
+        logger.error(f"Error in password verification: {e}")
         return False
 
 
@@ -39,9 +42,16 @@ logger = logging.get_logger(__name__)
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain password against a hashed password"""
     try:
-        return verify_password_direct(plain_password, hashed_password)
+        result = verify_password_direct(plain_password, hashed_password)
+        log_security_event(
+            "password_verification",
+            success=result,
+            password_length=len(plain_password) if plain_password else 0
+        )
+        return result
     except Exception as e:
         logger.error(f"Error verifying password: {e}")
+        log_security_event("password_verification", success=False, error=str(e))
         return False
 
 

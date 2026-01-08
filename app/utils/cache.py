@@ -6,6 +6,7 @@ from typing import Any, Optional
 import redis
 
 from app.core.config import settings
+from app.utils.logging import log_cache_operation
 
 logger = logging.getLogger(__name__)
 
@@ -24,40 +25,52 @@ class CacheManager:
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache"""
         if not self.redis_client:
+            log_cache_operation("get", key, success=False, reason="redis_unavailable")
             return None
 
         try:
             value = self.redis_client.get(key)
             if value:
-                return pickle.loads(value)
+                result = pickle.loads(value)
+                log_cache_operation("get", key, success=True)
+                return result
+            log_cache_operation("get", key, success=True, hit=False)
             return None
         except Exception as e:
             logger.error(f"Error getting value from cache: {e}")
+            log_cache_operation("get", key, success=False, error=str(e))
             return None
 
     def set(self, key: str, value: Any, expire: int = 3600) -> bool:
         """Set value in cache with expiration time in seconds"""
         if not self.redis_client:
+            log_cache_operation("set", key, success=False, reason="redis_unavailable")
             return False
 
         try:
             serialized_value = pickle.dumps(value)
             result = self.redis_client.setex(key, expire, serialized_value)
+            log_cache_operation("set", key, success=result)
             return result
         except Exception as e:
             logger.error(f"Error setting value to cache: {e}")
+            log_cache_operation("set", key, success=False, error=str(e))
             return False
 
     def delete(self, key: str) -> bool:
         """Delete value from cache"""
         if not self.redis_client:
+            log_cache_operation("delete", key, success=False, reason="redis_unavailable")
             return False
 
         try:
             result = self.redis_client.delete(key)
-            return result > 0
+            success = result > 0
+            log_cache_operation("delete", key, success=success)
+            return success
         except Exception as e:
             logger.error(f"Error deleting value from cache: {e}")
+            log_cache_operation("delete", key, success=False, error=str(e))
             return False
 
     def get_station_cache_key(

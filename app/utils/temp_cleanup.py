@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class TempFileCleanupManager:
-    """Manages automatic cleanup of temporary files and directories"""
+    """Управляет автоматической очисткой временных файлов и директорий"""
     
     def __init__(self, project_root: str = None):
         self.project_root = Path(project_root) if project_root else Path.cwd()
@@ -45,10 +45,10 @@ class TempFileCleanupManager:
     
     def cleanup_temp_files(self) -> Tuple[int, List[str]]:
         """
-        Clean up temporary files and directories
+        Очистка временных файлов и директорий
         
-        Returns:
-            Tuple of (files_deleted_count, errors_list)
+        Возвращает:
+            Кортеж (количество_удаленных_файлов, список_ошибок)
         """
         logger.info("Starting temporary file cleanup")
         cleaned_count = 0
@@ -124,7 +124,7 @@ class TempFileCleanupManager:
         return cleaned_count, errors
     
     def _cleanup_system_temp(self) -> Tuple[int, List[str]]:
-        """Clean up system temporary files created by this application"""
+        """Очистка системных временных файлов, созданных этим приложением"""
         cleaned_count = 0
         errors = []
         
@@ -156,7 +156,7 @@ class TempFileCleanupManager:
         return cleaned_count, errors
     
     def _handle_remove_readonly(self, func, path, exc):
-        """Handle readonly files during removal"""
+        """Обработка файлов только для чтения во время удаления"""
         try:
             if os.path.exists(path):
                 os.chmod(path, stat.S_IWRITE)
@@ -165,7 +165,7 @@ class TempFileCleanupManager:
             logger.warning(f"Could not remove readonly file {path}: {e}")
     
     def get_temp_stats(self) -> dict:
-        """Get statistics about temporary files"""
+        """Получение статистики о временных файлах"""
         stats = {
             "temp_directories": [],
             "temp_files": [],
@@ -211,7 +211,7 @@ temp_cleanup_manager = TempFileCleanupManager()
 
 
 def cleanup_on_shutdown():
-    """Function to be called on application shutdown"""
+    """Функция, вызываемая при завершении работы приложения"""
     try:
         logger.info("Initiating shutdown cleanup...")
         cleaned_count, errors = temp_cleanup_manager.cleanup_temp_files()

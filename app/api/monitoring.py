@@ -178,7 +178,7 @@ async def manual_cache_cleanup():
 
 @router.get("/temp-files/stats")
 async def get_temp_files_stats():
-    """Get statistics about temporary files"""
+    """Получение статистики о временных файлах"""
     try:
         stats = temp_cleanup_manager.get_temp_stats()
         return {
@@ -192,7 +192,7 @@ async def get_temp_files_stats():
 
 @router.post("/temp-files/cleanup")
 async def manual_temp_files_cleanup():
-    """Manually trigger temporary files cleanup"""
+    """Ручной запуск очистки временных файлов"""
     try:
         cleaned_count, errors = temp_cleanup_manager.cleanup_temp_files()
         return {
@@ -207,7 +207,7 @@ async def manual_temp_files_cleanup():
 
 @router.post("/temp-files/cleanup-on-shutdown")
 async def simulate_shutdown_cleanup():
-    """Simulate the shutdown cleanup process"""
+    """Симуляция процесса очистки при завершении работы"""
     try:
         cleaned_count, error_count = cleanup_on_shutdown()
         return {

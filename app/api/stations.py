@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
@@ -7,6 +8,7 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.database import get_db
 from app.utils import cache, geo
+from app.utils.logging import log_performance, log_cache_operation
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +53,16 @@ def read_stations(
         )
 
         # Try to get from cache first
+        start_time = time.time()
         cached_result = cache.cache.get(cache_key)
+        cache_duration = (time.time() - start_time) * 1000
+        
         if cached_result is not None:
             logger.info(f"Cache hit for key: {cache_key}")
+            log_performance(start_time, "cache_get", cache_key=cache_key, hit=True, duration_ms=cache_duration)
             return cached_result
+        else:
+            log_performance(start_time, "cache_get", cache_key=cache_key, hit=False, duration_ms=cache_duration)
 
         # Проверяем, есть ли геофильтр
         if latitude is not None and longitude is not None and radius_km is not None:
@@ -88,11 +96,19 @@ def read_stations(
             logger.info(f"Найдено {len(stations)} станций")
 
         # Cache the result for 10 minutes
-        cache.cache.set(cache_key, stations, expire=600)
+        start_time = time.time()
+        cache_success = cache.cache.set(cache_key, stations, expire=600)
+        cache_duration = (time.time() - start_time) * 1000
+        log_performance(start_time, "cache_set", cache_key=cache_key, success=cache_success, duration_ms=cache_duration)
 
         return stations
     except Exception as e:
-        logger.error(f"Ошибка при получении станций: {e}")
+        logger.error(f"Ошибка при получении станций: {e}", extra={
+            "error_type": type(e).__name__,
+            "latitude": latitude,
+            "longitude": longitude,
+            "radius_km": radius_km
+        })
         raise HTTPException(
             status_code=500, detail="Внутренняя ошибка сервера при получении данных"
         )

@@ -171,6 +171,59 @@ Response:
 }
 ```
 
+## Эндпоинты Мониторинга
+
+### Проверка Состояния Системы
+**GET** `/monitoring/health`
+
+Ответ:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-01-08T15:30:45.123456",
+  "uptime_seconds": 3600
+}
+```
+
+### Подключение к Базе Данных
+**GET** `/monitoring/db-status`
+
+Ответ:
+```json
+{
+  "database_status": "connected",
+  "can_execute_queries": true
+}
+```
+
+### Метрики Производительности
+**GET** `/monitoring/performance`
+
+Ответ:
+```json
+{
+  "avg_response_time_ms": 45.2,
+  "requests_per_minute": 125,
+  "error_rate_percent": 0.5
+}
+```
+
+### Статистика Кэша
+**GET** `/monitoring/cache-stats`
+
+Ответ:
+```json
+{
+  "station_cache_entries": 150,
+  "user_cache_entries": 25,
+  "other_cache_entries": 10,
+  "total_entries": 185,
+  "sample_ttl": {
+    "stations:lat:55.7558:lon:37.6173:radius:10": 540
+  }
+}
+```
+
 ## Notifications Endpoints
 
 ### Get Notification Statistics
@@ -218,12 +271,12 @@ Response:
 }
 ```
 
-## Cache Management Endpoints
+## Управление Кэшем
 
-### Get Cache Cleanup Statistics
+### Получение Статистики Очистки Кэша
 **GET** `/monitoring/cache-cleanup/stats`
 
-Response:
+Ответ:
 ```json
 {
   "total_entries": 150,
@@ -237,33 +290,33 @@ Response:
 }
 ```
 
-### Start Automatic Cache Cleanup
+### Запуск Автоматической Очистки Кэша
 **POST** `/monitoring/cache-cleanup/start`
 
-Response:
+Ответ:
 ```json
 {
-  "message": "Cache cleanup scheduler started"
+  "message": "Планировщик очистки кэша запущен"
 }
 ```
 
-### Stop Automatic Cache Cleanup
+### Остановка Автоматической Очистки Кэша
 **POST** `/monitoring/cache-cleanup/stop`
 
-Response:
+Ответ:
 ```json
 {
-  "message": "Cache cleanup scheduler stopped"
+  "message": "Планировщик очистки кэша остановлен"
 }
 ```
 
-### Perform Manual Cache Cleanup
+### Выполнить Ручную Очистку Кэша
 **POST** `/monitoring/cache-cleanup/manual`
 
-Response:
+Ответ:
 ```json
 {
-  "message": "Manual cache cleanup completed",
+  "message": "Ручная очистка кэша завершена",
   "stats": {
     "total_entries": 145,
     "station_entries": 115,
@@ -273,31 +326,31 @@ Response:
 }
 ```
 
-### Warm Cache
+### Разогрев Кэша
 **POST** `/monitoring/warm-cache`
 
-Query Parameters:
-- `latitude` (float, optional): Latitude for cache warming (default: 55.7558)
-- `longitude` (float, optional): Longitude for cache warming (default: 37.6173)
-- `radius_km` (int, optional): Radius in kilometers (default: 10)
+Параметры запроса:
+- `latitude` (float, опционально): Широта для разогрева кэша (по умолчанию: 55.7558)
+- `longitude` (float, опционально): Долгота для разогрева кэша (по умолчанию: 37.6173)
+- `radius_km` (int, опционально): Радиус в километрах (по умолчанию: 10)
 
-Response:
+Ответ:
 ```json
 {
-  "message": "Cache warming initiated for 3 queries",
+  "message": "Разогрев кэша инициирован для 3 запросов",
   "queries_warmed": 3
 }
 ```
 
-## Temporary Files Management Endpoints
+## Управление Временными Файлами
 
-### Get Temporary Files Statistics
+### Получение Статистики Временных Файлов
 **GET** `/monitoring/temp-files/stats`
 
-Response:
+Ответ:
 ```json
 {
-  "message": "Temporary files statistics",
+  "message": "Статистика временных файлов",
   "stats": {
     "temp_directories": [
       {
@@ -317,26 +370,26 @@ Response:
 }
 ```
 
-### Manual Temporary Files Cleanup
+### Ручная Очистка Временных Файлов
 **POST** `/monitoring/temp-files/cleanup`
 
-Response:
+Ответ:
 ```json
 {
-  "message": "Temporary files cleanup completed",
+  "message": "Очистка временных файлов завершена",
   "cleaned_count": 15,
   "error_count": 0,
   "errors": []
 }
 ```
 
-### Simulate Shutdown Cleanup
+### Симуляция Очистки При Завершении Работы
 **POST** `/monitoring/temp-files/cleanup-on-shutdown`
 
-Response:
+Ответ:
 ```json
 {
-  "message": "Shutdown cleanup simulation completed",
+  "message": "Симуляция очистки при завершении работы завершена",
   "cleaned_count": 23,
   "error_count": 1
 }
