@@ -5,6 +5,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.api import auth, favorites, stations
 from app.core.config import settings
+from app.services.notifications import notification_service
 from app.utils import logging
 
 # Setup logging
@@ -21,6 +22,9 @@ app = FastAPI(
     description="Интерактивная карта зарядных станций для электромобилей",
     version="1.0.0",
 )
+
+# Initialize notification service
+notification_service.initialize_sockets(app)
 # CORS - Allow localhost for development; configure for production
 app.add_middleware(
     CORSMiddleware,
@@ -35,6 +39,8 @@ app.add_middleware(
 )
 # Монтирование статических файлов
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# Mount Socket.IO app
+app.mount("/ws", notification_service.app)
 
 # Шаблоны
 templates = Jinja2Templates(directory="app/templates")
