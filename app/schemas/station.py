@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, validator
 
 
 class StationBase(BaseModel):
@@ -15,29 +15,25 @@ class StationBase(BaseModel):
     price: Optional[float] = None
     hours: Optional[str] = None
 
-    @field_validator("latitude")
-    @classmethod
+    @validator("latitude")
     def validate_latitude(cls, v: float) -> float:
         if v < -90 or v > 90:
             raise ValueError("Широта должна быть в диапазоне от -90 до 90")
         return v
 
-    @field_validator("longitude")
-    @classmethod
+    @validator("longitude")
     def validate_longitude(cls, v: float) -> float:
         if v < -180 or v > 180:
             raise ValueError("Долгота должна быть в диапазоне от -180 до 180")
         return v
 
-    @field_validator("power_kw")
-    @classmethod
+    @validator("power_kw")
     def validate_power_kw(cls, v: float) -> float:
         if v <= 0:
             raise ValueError("Мощность должна быть положительной")
         return v
 
-    @field_validator("status")
-    @classmethod
+    @validator("status")
     def validate_status(cls, v: str) -> str:
         valid_statuses = ["available", "occupied", "maintenance", "unknown"]
         if v not in valid_statuses:
@@ -53,4 +49,5 @@ class Station(StationBase):
     id: int
     last_updated: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True

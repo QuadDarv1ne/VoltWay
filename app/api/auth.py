@@ -56,12 +56,12 @@ def get_current_active_admin(current_user=Depends(get_current_user)):
 
 @router.post("/token", response_model=schemas.Token)
 async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+    user_login: schemas.UserLogin, db: Session = Depends(get_db)
 ):
     """Login endpoint to get access token"""
-    user = crud.authenticate_user(db, form_data.username, form_data.password)
+    user = crud.authenticate_user(db, user_login.username, user_login.password)
     if not user:
-        logger.warning(f"Failed login attempt for username: {form_data.username}")
+        logger.warning(f"Failed login attempt for username: {user_login.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
