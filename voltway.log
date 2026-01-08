@@ -309,3 +309,5 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-01-08 17:54:01,764 - asyncio - DEBUG - Using proactor: IocpProactor
 2026-01-08 17:54:01,812 - app.utils.cache_cleanup - WARNING - Redis not available, cache cleanup scheduler not started
 2026-01-08 17:54:34,859 - app.utils.cache_cleanup - INFO - Cache cleanup scheduler stopped
+2026-01-08 17:54:51,846 - app.utils.cache_cleanup - WARNING - Redis not available, cache cleanup scheduler not started
+2026-01-08 17:55:16,618 - app.utils.cache_cleanup - INFO - Cache cleanup scheduler stopped
