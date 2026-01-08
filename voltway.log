@@ -302,3 +302,4 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-01-08 16:44:13,605 - asyncio - DEBUG - Using proactor: IocpProactor
 2026-01-08 17:14:07,080 - app.api.stations - INFO - Найдено 3 станций
 2026-01-08 17:15:26,149 - app.api.stations - INFO - Найдено 3 станций
+2026-01-08 17:38:10,050 - app.api.stations - INFO - Найдено 3 станций

@@ -36,7 +36,8 @@ async def get_performance_metrics(db: Session = Depends(get_db)):
     db_stats = {}
     try:
         # Simple database query to check connectivity
-        result = db.execute("SELECT 1").fetchone()
+        from sqlalchemy import text
+        result = db.execute(text("SELECT 1")).fetchone()
         db_stats["connected"] = result is not None
         db_stats["active_connections"] = "N/A"  # Would need postgres-specific query
     except Exception as e:
