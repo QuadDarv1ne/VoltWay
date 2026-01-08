@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.utils.profiler import query_profiler
 from app.utils.cache import cache
+from app.utils.cache_cleanup import cleanup_manager
 
 router = APIRouter(prefix="/monitoring", tags=["monitoring"])
 
@@ -130,6 +131,45 @@ async def warm_cache(
         return {
             "message": f"Cache warming initiated for {warmed_count} queries",
             "queries_warmed": warmed_count
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.get("/cache-cleanup/stats")
+async def get_cache_cleanup_stats():
+    """Get cache cleanup statistics and configuration"""
+    return cleanup_manager.get_cleanup_stats()
+
+
+@router.post("/cache-cleanup/start")
+async def start_cache_cleanup():
+    """Start automatic cache cleanup scheduler"""
+    if cleanup_manager.running:
+        return {"message": "Cache cleanup scheduler already running"}
+    
+    # Start in background
+    import asyncio
+    asyncio.create_task(cleanup_manager.start_cleanup_scheduler())
+    return {"message": "Cache cleanup scheduler started"}
+
+
+@router.post("/cache-cleanup/stop")
+async def stop_cache_cleanup():
+    """Stop automatic cache cleanup scheduler"""
+    cleanup_manager.stop_cleanup_scheduler()
+    return {"message": "Cache cleanup scheduler stopped"}
+
+
+@router.post("/cache-cleanup/manual")
+async def manual_cache_cleanup():
+    """Perform manual cache cleanup cycle"""
+    try:
+        await cleanup_manager.perform_cleanup_cycle()
+        stats = cleanup_manager.get_cleanup_stats()
+        return {
+            "message": "Manual cache cleanup completed",
+            "stats": stats
         }
     except Exception as e:
         return {"error": str(e)}

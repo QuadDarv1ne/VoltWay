@@ -7,6 +7,7 @@ from app.api import auth, favorites, monitoring, notifications, stations
 from app.core.config import settings
 from app.services.notifications import notification_service
 from app.utils import logging
+from app.utils.cache_cleanup import cleanup_manager
 
 # Setup logging
 logging.setup_logging()
@@ -25,6 +26,11 @@ app = FastAPI(
 
 # Initialize notification service later in lifecycle
 # notification_service.initialize_sockets(app)
+
+# Start automatic cache cleanup
+import asyncio
+asyncio.create_task(cleanup_manager.start_cleanup_scheduler())
+
 # CORS - Allow localhost for development; configure for production
 app.add_middleware(
     CORSMiddleware,
