@@ -39,3 +39,44 @@ header {
 .station-info h3 {
     margin-top: 0;
 }
+
+/* Стили для кнопок избранного */
+.favorite-btn {
+    margin-top: 10px;
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #f0f0f0;
+    color: #666;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.favorite-btn:hover {
+    background: #e0e0e0;
+    transform: translateY(-1px);
+}
+
+.favorite-btn.favorited {
+    background: #ffd700;
+    color: #000;
+    border-color: #ffcc00;
+}
+
+/* Адаптивный дизайн */
+@media (max-width: 768px) {
+    #map {
+        height: 400px;
+    }
+    
+    .controls {
+        padding: 0.5rem;
+    }
+    
+    .controls input, .controls select, .controls button {
+        display: block;
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+}

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.api import auth, stations
+from app.api import auth, favorites, stations
 from app.core.config import settings
 from app.utils import logging
 
@@ -42,6 +42,7 @@ templates = Jinja2Templates(directory="app/templates")
 # Роутеры
 app.include_router(stations.router, prefix="/api/v1", tags=["stations"])
 app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
+app.include_router(favorites.router, prefix="/api/v1", tags=["favorites"])
 
 # Note: Database tables should be created via Alembic migrations
 # Base.metadata.create_all(bind=engine)  # Removed for production best practices

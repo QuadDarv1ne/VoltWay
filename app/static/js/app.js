@@ -73,10 +73,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         <p><strong>Статус:</strong> ${station.status}</p>
                         ${station.price ? `<p><strong>Цена:</strong> ${station.price} руб/кВт</p>` : ''}
                         ${station.hours ? `<p><strong>Часы работы:</strong> ${station.hours}</p>` : ''}
+                        <button onclick="toggleFavorite(${station.id})" class="favorite-btn" id="fav-${station.id}">
+                            ★ Избранное
+                        </button>
                     </div>
                 `);
             markers.addLayer(marker);
         });
+
+        // Проверка избранных станций
+        checkFavorites(stations);
     }
 
     // Поиск по местоположению
@@ -127,4 +133,65 @@ document.addEventListener('DOMContentLoaded', function() {
             statusEl.textContent = 'Ошибка обновления';
         }
     });
+
+    // Функции для работы с избранными станциями
+    window.toggleFavorite = async function(stationId) {
+        const btn = document.getElementById(`fav-${stationId}`);
+        
+        try {
+            // Проверяем текущий статус
+            const checkResponse = await fetch(`/api/v1/favorites/check/${stationId}`);
+            const checkData = await checkResponse.json();
+            
+            if (checkData.is_favorite) {
+                // Удалить из избранного
+                const response = await fetch(`/api/v1/favorites/${stationId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    btn.textContent = '☆ В избранное';
+                    btn.style.background = '#f0f0f0';
+                    btn.style.color = '#666';
+                }
+            } else {
+                // Добавить в избранное
+                const response = await fetch(`/api/v1/favorites/${stationId}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    btn.textContent = '★ В избранном';
+                    btn.style.background = '#ffd700';
+                    btn.style.color = '#000';
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка при работе с избранным:', error);
+        }
+    };
+
+    async function checkFavorites(stations) {
+        for (const station of stations) {
+            try {
+                const response = await fetch(`/api/v1/favorites/check/${station.id}`);
+                const data = await response.json();
+                
+                const btn = document.getElementById(`fav-${station.id}`);
+                if (btn) {
+                    if (data.is_favorite) {
+                        btn.textContent = '★ В избранном';
+                        btn.style.background = '#ffd700';
+                        btn.style.color = '#000';
+                    } else {
+                        btn.textContent = '☆ В избранное';
+                        btn.style.background = '#f0f0f0';
+                        btn.style.color = '#666';
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка проверки избранного:', error);
+            }
+        }
+    }
 });

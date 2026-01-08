@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Float, Index, Integer, String, Text
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from . import Base
@@ -22,6 +23,9 @@ class Station(Base):
     price = Column(Float, nullable=True)
     hours = Column(Text, nullable=True)
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    favorited_by = relationship("Favorite", back_populates="station", cascade="all, delete-orphan")
 
     # Add check constraints
     __table_args__ = (
