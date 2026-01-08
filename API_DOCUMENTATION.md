@@ -218,6 +218,77 @@ Response:
 }
 ```
 
+## Cache Management Endpoints
+
+### Get Cache Cleanup Statistics
+**GET** `/monitoring/cache-cleanup/stats`
+
+Response:
+```json
+{
+  "total_entries": 150,
+  "station_entries": 120,
+  "other_entries": 30,
+  "memory_usage": "25.42M",
+  "running": true,
+  "cleanup_interval": 300,
+  "max_cache_size": 1000,
+  "max_memory_usage_mb": 100.0
+}
+```
+
+### Start Automatic Cache Cleanup
+**POST** `/monitoring/cache-cleanup/start`
+
+Response:
+```json
+{
+  "message": "Cache cleanup scheduler started"
+}
+```
+
+### Stop Automatic Cache Cleanup
+**POST** `/monitoring/cache-cleanup/stop`
+
+Response:
+```json
+{
+  "message": "Cache cleanup scheduler stopped"
+}
+```
+
+### Perform Manual Cache Cleanup
+**POST** `/monitoring/cache-cleanup/manual`
+
+Response:
+```json
+{
+  "message": "Manual cache cleanup completed",
+  "stats": {
+    "total_entries": 145,
+    "station_entries": 115,
+    "other_entries": 30,
+    "memory_usage": "24.15M"
+  }
+}
+```
+
+### Warm Cache
+**POST** `/monitoring/warm-cache`
+
+Query Parameters:
+- `latitude` (float, optional): Latitude for cache warming (default: 55.7558)
+- `longitude` (float, optional): Longitude for cache warming (default: 37.6173)
+- `radius_km` (int, optional): Radius in kilometers (default: 10)
+
+Response:
+```json
+{
+  "message": "Cache warming initiated for 3 queries",
+  "queries_warmed": 3
+}
+```
+
 ## User Management Endpoints
 
 ### Create New User
