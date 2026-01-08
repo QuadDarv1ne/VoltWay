@@ -282,3 +282,21 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-01-06 12:18:52,233 - asyncio - DEBUG - Using proactor: IocpProactor
 2026-01-06 12:18:52,240 - asyncio - DEBUG - Using proactor: IocpProactor
 2026-01-06 12:18:52,252 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-08 16:44:13,420 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-08 16:44:13,433 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-08 16:44:13,443 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-08 16:44:13,477 - app.api.stations - INFO - Найдено 3 станций
+2026-01-08 16:44:13,488 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-08 16:44:13,495 - app.api.stations - INFO - Найдено 3 станций
+2026-01-08 16:44:13,500 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-08 16:44:13,518 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-08 16:44:13,526 - app.api.stations - INFO - Найдено 3 станций с геофильтрацией
+2026-01-08 16:44:13,536 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-08 16:44:13,544 - app.api.stations - INFO - Найдено 1 станций
+2026-01-08 16:44:13,552 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-08 16:44:13,559 - app.api.stations - INFO - Найдено 3 станций
+2026-01-08 16:44:13,569 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-08 16:44:13,575 - app.api.stations - INFO - Найдено 3 станций
+2026-01-08 16:44:13,584 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-08 16:44:13,592 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-01-08 16:44:13,605 - asyncio - DEBUG - Using proactor: IocpProactor
