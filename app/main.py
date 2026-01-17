@@ -13,6 +13,8 @@ from slowapi.util import get_remote_address
 
 from app.api import auth, favorites, monitoring, notifications, stations
 from app.api.exceptions import VoltWayException
+from app.api.v1 import v1_router
+from app.api.v2 import v2_router
 from app.core.config import settings
 from app.services.notifications import notification_service
 from app.utils import logging as app_logging
@@ -143,11 +145,9 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     )
 
 # Роутеры
-app.include_router(stations.router, prefix="/api/v1", tags=["stations"])
-app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
-app.include_router(favorites.router, prefix="/api/v1", tags=["favorites"])
-app.include_router(monitoring.router, prefix="/api/v1", tags=["monitoring"])
-# app.include_router(notifications.router, prefix="/api/v1", tags=["notifications"])  # Temporarily disabled
+# Register versioned API routers
+app.include_router(v1_router)
+app.include_router(v2_router)
 
 
 @app.get("/")
