@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from slowapi import Limiter
@@ -16,10 +16,12 @@ from app.api.exceptions import VoltWayException
 from app.api.v1 import v1_router
 from app.api.v2 import v2_router
 from app.core.config import settings
+from app.middleware.logging import RequestLoggingMiddleware, PerformanceMiddleware
 from app.services.notifications import notification_service
 from app.utils import logging as app_logging
 from app.utils.cache_cleanup import cleanup_manager
 from app.utils.temp_cleanup import cleanup_on_shutdown
+from app.utils.metrics import get_metrics
 
 # Initialize Sentry for error tracking
 if settings.sentry_dsn:
@@ -77,6 +79,10 @@ app = FastAPI(
 # Apply rate limiter
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Add middleware (order matters - add in reverse order of execution)
+app.add_middleware(PerformanceMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
 
 # CORS - Allow localhost for development; configure for production
 app.add_middleware(
@@ -167,6 +173,22 @@ async def health_check():
         "status": "healthy",
         "timestamp": "2026-01-06T00:00:00Z",
     }  # Use datetime.utcnow() in real implementation
+
+
+@app.get("/metrics", tags=["monitoring"], response_class=Response)
+async def prometheus_metrics():
+    """Prometheus metrics endpoint"""
+    return Response(content=get_metrics(), media_type="text/plain")
+
+
+@app.get("/api/v1/health", tags=["health"])
+async def api_health():
+    """API health check endpoint"""
+    return {
+        "status": "healthy",
+        "version": "1.0.0",
+        "service": "VoltWay",
+    }
 
 
 if __name__ == "__main__":
