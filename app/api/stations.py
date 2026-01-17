@@ -154,12 +154,14 @@ async def read_station(request, station_id: int, db: AsyncSession = Depends(get_
 
 
 @router.post("/stations/update_cache")
+@limiter.limit("10/minute")
 async def update_cache(
+    request,
     background_tasks: BackgroundTasks,
     latitude: float = Query(55.7558, ge=-90, le=90, description="Широта центра"),
     longitude: float = Query(37.6173, ge=-180, le=180, description="Долгота центра"),
     radius: int = Query(50, ge=1, le=100, description="Радиус в км"),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
 ):
     """Обновление кэша данными из внешних API"""
     try:
@@ -173,10 +175,10 @@ async def update_cache(
         return {"message": "Cache update started in background"}
     except Exception as e:
         logger.error(f"Ошибка при запуске обновления кэша: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка запуска обновления кэша")
+        raise DatabaseError("update_cache", str(e))
 
 
-async def update_stations_from_api(lat: float, lon: float, radius: int, db: Session):
+async def update_stations_from_api(lat: float, lon: float, radius: int, db: AsyncSession):
     """Фоновая задача для обновления станций из API"""
     from app.services.external_api import fetch_stations_from_open_charge_map
 
@@ -193,21 +195,19 @@ async def update_stations_from_api(lat: float, lon: float, radius: int, db: Sess
         added_count = 0
         for data in stations_data:
             # Проверка существования станции
-            existing = (
-                db.query(models.station.Station)
-                .filter(
-                    models.station.Station.latitude == data["latitude"],
-                    models.station.Station.longitude == data["longitude"],
-                )
-                .first()
+            query = select(models.station.Station).where(
+                (models.station.Station.latitude == data["latitude"]) &
+                (models.station.Station.longitude == data["longitude"])
             )
+            result = await db.execute(query)
+            existing = result.scalar_one_or_none()
 
             if not existing:
                 station = models.station.Station(**data)
                 db.add(station)
                 added_count += 1
 
-        db.commit()
+        await db.commit()
         # Clear the station cache after updating
         cache.cache.clear_station_cache()
         logger.info(
@@ -216,4 +216,4 @@ async def update_stations_from_api(lat: float, lon: float, radius: int, db: Sess
         )
     except Exception as e:
         logger.error(f"Error updating cache: {e}")
-        db.rollback()
+        await db.rollback()
