@@ -1,10 +1,13 @@
 fastapi==0.95.2
 uvicorn[standard]==0.24.0
 sqlalchemy==2.0.23
+sqlalchemy[asyncio]==2.0.23
 alembic==1.12.1
 pydantic==2.5.0
 pydantic[email]==2.5.0
+pydantic-settings==2.1.0
 psycopg2-binary==2.9.9
+psycopg[binary]==3.1.13
 redis==5.0.1
 python-dotenv==1.0.0
 httpx==0.25.2  # для внешних API запросов
@@ -14,6 +17,10 @@ pytest-asyncio==0.21.1
 bcrypt==4.0.1
 passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
+# Sentry for error tracking
+sentry-sdk[fastapi]==1.38.0
+# Rate limiting
+slowapi==0.1.9
 # Development dependencies
 black==23.12.1
 isort==5.13.2

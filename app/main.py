@@ -1,34 +1,69 @@
+import logging
+from contextlib import asynccontextmanager
+
+import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from app.api import auth, favorites, monitoring, notifications, stations
+from app.api.exceptions import VoltWayException
 from app.core.config import settings
 from app.services.notifications import notification_service
-from app.utils import logging
+from app.utils import logging as app_logging
 from app.utils.cache_cleanup import cleanup_manager
 from app.utils.temp_cleanup import cleanup_on_shutdown
 
+# Initialize Sentry for error tracking
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        traces_sample_rate=0.1 if not settings.debug else 1.0,
+        environment="development" if settings.debug else "production",
+    )
+    logging.info("Sentry initialized")
+
 # Setup logging
-logging.setup_logging()
+app_logging.setup_logging()
+logger = logging.getLogger(__name__)
 
-# Note: Database tables should be created via Alembic migrations
-# Base.metadata.create_all(bind=engine)  # Removed for production best practices
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
-# Note: Sample data should be added via scripts or migrations
-# add_sample_data()  # Removed for production best practices
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan context manager"""
+    # Startup
+    logger.info("Starting up VoltWay application")
+    import asyncio
+    asyncio.create_task(cleanup_manager.start_cleanup_scheduler())
+    yield
+    # Shutdown
+    logger.info("Shutting down VoltWay application")
+    cleanup_manager.stop_cleanup_scheduler()
+    try:
+        cleaned_count, error_count = cleanup_on_shutdown()
+        logger.info(f"Temporary file cleanup: {cleaned_count} items cleaned, {error_count} errors")
+    except Exception as e:
+        logger.error(f"Error during temporary file cleanup: {e}")
+
 
 app = FastAPI(
     title="VoltWay",
     description="Интерактивная карта зарядных станций для электромобилей",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
-# Initialize notification service later in lifecycle
-# notification_service.initialize_sockets(app)
-
-# Start automatic cache cleanup will be handled by FastAPI startup event
+# Apply rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS - Allow localhost for development; configure for production
 app.add_middleware(
@@ -37,7 +72,7 @@ app.add_middleware(
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
-    ],  # Add your frontend URLs
+    ] if settings.debug else ["https://example.com"],  # Configure for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,38 +85,69 @@ app.mount("/ws", notification_service.app)
 # Шаблоны
 templates = Jinja2Templates(directory="app/templates")
 
+
+# Exception handlers
+def _rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    """Handle rate limit exceeded errors"""
+    return JSONResponse(
+        status_code=429,
+        content={
+            "detail": "Rate limit exceeded",
+            "error_code": "RATE_LIMIT_EXCEEDED",
+        },
+    )
+
+
+@app.exception_handler(VoltWayException)
+async def voltway_exception_handler(request: Request, exc: VoltWayException) -> JSONResponse:
+    """Handle custom VoltWay exceptions"""
+    logger.warning(
+        f"VoltWay exception: {exc.error_code}",
+        extra={
+            "error_code": exc.error_code,
+            "status_code": exc.status_code,
+            "details": exc.details,
+        },
+    )
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "detail": exc.message,
+            "error_code": exc.error_code,
+            "details": exc.details,
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Handle general exceptions with Sentry"""
+    logger.error(f"Unhandled exception: {str(exc)}", exc_info=exc)
+    
+    # Capture in Sentry
+    sentry_sdk.capture_exception(exc)
+    
+    status_code = 500
+    error_code = "INTERNAL_SERVER_ERROR"
+    message = "An internal server error occurred"
+    
+    if settings.debug:
+        message = str(exc)
+    
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "detail": message,
+            "error_code": error_code,
+        },
+    )
+
 # Роутеры
 app.include_router(stations.router, prefix="/api/v1", tags=["stations"])
 app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
 app.include_router(favorites.router, prefix="/api/v1", tags=["favorites"])
 app.include_router(monitoring.router, prefix="/api/v1", tags=["monitoring"])
 # app.include_router(notifications.router, prefix="/api/v1", tags=["notifications"])  # Temporarily disabled
-
-# Note: Database tables should be created via Alembic migrations
-# Base.metadata.create_all(bind=engine)  # Removed for production best practices
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Startup event handler"""
-    # Start cache cleanup scheduler
-    import asyncio
-    asyncio.create_task(cleanup_manager.start_cleanup_scheduler())
-    print("Cache cleanup scheduler started")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Shutdown event handler"""
-    cleanup_manager.stop_cleanup_scheduler()
-    print("Cache cleanup scheduler stopped")
-    
-    # Clean up temporary files
-    try:
-        cleaned_count, error_count = cleanup_on_shutdown()
-        print(f"Temporary file cleanup: {cleaned_count} items cleaned, {error_count} errors")
-    except Exception as e:
-        print(f"Error during temporary file cleanup: {e}")
 
 
 @app.get("/")

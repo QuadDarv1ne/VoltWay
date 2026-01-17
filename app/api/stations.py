@@ -2,21 +2,28 @@ import logging
 import time
 from typing import List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app import crud, models, schemas
-from app.database import get_db
+from app.api.exceptions import StationNotFoundError, InvalidFilterError, DatabaseError
+from app.database import get_async_db
 from app.utils import cache, geo
 from app.utils.logging import log_performance, log_cache_operation
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.get("/stations", response_model=List[schemas.Station])
-def read_stations(
+@limiter.limit("100/minute")
+async def read_stations(
+    request,
     skip: int = Query(0, ge=0, description="Количество пропускаемых записей"),
     limit: int = Query(
         100, le=1000, ge=1, description="Максимальное количество возвращаемых записей"
@@ -34,19 +41,14 @@ def read_stations(
     min_power_kw: Optional[float] = Query(
         None, gt=0, description="Минимальная мощность"
     ),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
 ):
-    query = db.query(models.station.Station)
-
-    # Фильтр по типу разъема
-    if connector_type:
-        query = query.filter(models.station.Station.connector_type.ilike(f"%{connector_type}%"))
-
-    # Фильтр по мощности
-    if min_power_kw:
-        query = query.filter(models.station.Station.power_kw >= min_power_kw)
-
+    """Получить список станций с фильтрацией и пагинацией"""
     try:
+        # Validate filter parameters
+        if connector_type and len(connector_type) > 50:
+            raise InvalidFilterError("connector_type filter is too long", {"connector_type": connector_type})
+        
         # Generate cache key
         cache_key = cache.cache.get_station_cache_key(
             latitude, longitude, radius_km, connector_type, min_power_kw, skip, limit
@@ -64,10 +66,20 @@ def read_stations(
         else:
             log_performance(start_time, "cache_get", cache_key=cache_key, hit=False, duration_ms=cache_duration)
 
+        # Build query
+        query = select(models.station.Station)
+        
+        # Фильтр по типу разъема
+        if connector_type:
+            query = query.where(models.station.Station.connector_type.ilike(f"%{connector_type}%"))
+
+        # Фильтр по мощности
+        if min_power_kw:
+            query = query.where(models.station.Station.power_kw >= min_power_kw)
+
         # Проверяем, есть ли геофильтр
         if latitude is not None and longitude is not None and radius_km is not None:
-            # Для геофильтра используем специальную функцию, так как нужна точная
-            # фильтрация по расстоянию
+            # Для геофильтра используем специальную функцию
             filtered_stations = geo.get_geospatial_filter(
                 db, latitude, longitude, radius_km
             )
@@ -92,7 +104,9 @@ def read_stations(
             logger.info(f"Найдено {len(stations)} станций с геофильтрацией")
         else:
             # Без геофильтра используем обычный SQL запрос
-            stations = query.offset(skip).limit(limit).all()
+            query = query.offset(skip).limit(limit)
+            result = await db.execute(query)
+            stations = result.scalars().all()
             logger.info(f"Найдено {len(stations)} станций")
 
         # Cache the result for 10 minutes
@@ -102,6 +116,8 @@ def read_stations(
         log_performance(start_time, "cache_set", cache_key=cache_key, success=cache_success, duration_ms=cache_duration)
 
         return stations
+    except InvalidFilterError:
+        raise
     except Exception as e:
         logger.error(f"Ошибка при получении станций: {e}", extra={
             "error_type": type(e).__name__,
@@ -109,30 +125,32 @@ def read_stations(
             "longitude": longitude,
             "radius_km": radius_km
         })
-        raise HTTPException(
-            status_code=500, detail="Внутренняя ошибка сервера при получении данных"
-        )
+        raise DatabaseError("get_stations", str(e))
 
 
 @router.get("/stations/{station_id}", response_model=schemas.Station)
-def read_station(station_id: int, db: Session = Depends(get_db)):
+@limiter.limit("60/minute")
+async def read_station(request, station_id: int, db: AsyncSession = Depends(get_async_db)):
+    """Получить информацию о конкретной станции"""
     try:
         # Проверка корректности ID
         if station_id <= 0:
-            raise HTTPException(
-                status_code=400, detail="ID станции должен быть положительным числом"
-            )
+            raise InvalidFilterError("station_id must be positive", {"station_id": station_id})
 
-        db_station = crud.get_station(db, station_id=station_id)
+        query = select(models.station.Station).where(models.station.Station.id == station_id)
+        result = await db.execute(query)
+        db_station = result.scalar_one_or_none()
+        
         if db_station is None:
             logger.warning(f"Станция с ID {station_id} не найдена")
-            raise HTTPException(status_code=404, detail="Station not found")
+            raise StationNotFoundError(station_id)
+        
         return db_station
-    except HTTPException:
+    except (StationNotFoundError, InvalidFilterError):
         raise
     except Exception as e:
         logger.error(f"Ошибка при получении станции {station_id}: {e}")
-        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
+        raise DatabaseError("get_station", str(e))
 
 
 @router.post("/stations/update_cache")
