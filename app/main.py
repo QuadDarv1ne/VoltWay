@@ -36,6 +36,17 @@ logger = logging.getLogger(__name__)
 limiter = Limiter(key_func=get_remote_address)
 
 
+def _rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    """Handle rate limit exceeded errors"""
+    return JSONResponse(
+        status_code=429,
+        content={
+            "detail": "Rate limit exceeded",
+            "error_code": "RATE_LIMIT_EXCEEDED",
+        },
+    )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan context manager"""
@@ -87,17 +98,6 @@ templates = Jinja2Templates(directory="app/templates")
 
 
 # Exception handlers
-def _rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
-    """Handle rate limit exceeded errors"""
-    return JSONResponse(
-        status_code=429,
-        content={
-            "detail": "Rate limit exceeded",
-            "error_code": "RATE_LIMIT_EXCEEDED",
-        },
-    )
-
-
 @app.exception_handler(VoltWayException)
 async def voltway_exception_handler(request: Request, exc: VoltWayException) -> JSONResponse:
     """Handle custom VoltWay exceptions"""
