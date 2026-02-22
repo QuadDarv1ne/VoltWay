@@ -1,36 +1,48 @@
-fastapi==0.95.2
-uvicorn[standard]==0.24.0
-sqlalchemy==2.0.23
-sqlalchemy[asyncio]==2.0.23
-alembic==1.12.1
-pydantic==2.5.0
-pydantic[email]==2.5.0
-pydantic-settings==2.1.0
-psycopg2-binary==2.9.9
-psycopg[binary]==3.1.13
-redis==5.0.1
-python-dotenv==1.0.0
-httpx==0.25.2  # для внешних API запросов
-jinja2==3.1.2  # для шаблонов
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
-bcrypt==4.0.1
-passlib[bcrypt]==1.7.4
-python-jose[cryptography]==3.3.0
-# Sentry for error tracking
-sentry-sdk[fastapi]==1.38.0
+# Core
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+sqlalchemy>=2.0.35
+sqlalchemy[asyncio]>=2.0.35
+alembic>=1.14.0
+pydantic>=2.10.0
+pydantic[email]>=2.10.0
+pydantic-settings>=2.7.0
+# PostgreSQL with PostGIS support
+psycopg2-binary>=2.9.9
+geoalchemy2>=0.14.0
+# Redis
+redis>=5.2.0
+python-dotenv>=1.0.0
+httpx>=0.28.0  # для внешних API запросов
+jinja2>=3.1.5  # для шаблонов
+
+# Testing
+pytest>=8.3.0
+pytest-asyncio>=0.25.0
+pytest-cov>=6.0.0
+
+# Security
+bcrypt>=4.2.0
+passlib[bcrypt]>=1.7.4
+python-jose[cryptography]>=3.4.0
+
+# Monitoring
+sentry-sdk[fastapi]>=2.20.0
 # Rate limiting
-slowapi==0.1.9
+slowapi>=0.1.9
 # Prometheus metrics
-prometheus-client==0.18.0
-psutil==5.9.6
+prometheus-client>=0.21.0
+psutil>=6.1.0
+
 # Development dependencies
-black==23.12.1
-isort==5.13.2
-flake8==7.0.0
-mypy==1.8.0
-pylint==3.0.0
-radon==6.1
-bandit==1.7.5
-safety==2.3.5
+black>=25.1.0
+isort>=6.0.0
+flake8>=7.1.0
+mypy>=1.15.0
+pylint>=3.3.0
+radon>=6.0.0
+bandit>=1.8.0
+safety>=3.2.0
+
+# WebSocket
+python-socketio>=5.12.0

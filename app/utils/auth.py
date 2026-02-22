@@ -46,7 +46,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         log_security_event(
             "password_verification",
             success=result,
-            password_length=len(plain_password) if plain_password else 0
+            password_length=len(plain_password) if plain_password else 0,
         )
         return result
     except Exception as e:

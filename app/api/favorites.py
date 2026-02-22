@@ -5,7 +5,7 @@ from app.api.auth import get_current_user
 from app.crud import favorite as crud_favorite
 from app.database import get_db
 from app.models.user import User
-from app.schemas.favorite import FavoriteResponse
+from app.schemas.favorite import FavoriteResponse, FavoriteWithStationResponse
 
 router = APIRouter(prefix="/favorites", tags=["favorites"])
 
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/favorites", tags=["favorites"])
 async def add_favorite_station(
     station_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """Add a station to user's favorites"""
     try:
@@ -23,7 +23,7 @@ async def add_favorite_station(
             id=favorite.id,
             user_id=favorite.user_id,
             station_id=favorite.station_id,
-            created_at=favorite.created_at
+            created_at=favorite.created_at,
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -33,7 +33,7 @@ async def add_favorite_station(
 async def remove_favorite_station(
     station_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """Remove a station from user's favorites"""
     success = crud_favorite.remove_favorite(db, current_user.id, station_id)
@@ -42,21 +42,29 @@ async def remove_favorite_station(
     return {"message": "Station removed from favorites"}
 
 
-@router.get("/", response_model=list[FavoriteResponse])
+@router.get("/", response_model=list[FavoriteWithStationResponse])
 async def get_my_favorites(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    """Get all favorite stations for current user"""
-    favorites = crud_favorite.get_user_favorites(db, current_user.id, skip, limit)
+    """
+    Get all favorite stations for current user.
+
+    Uses optimized query with selectinload to prevent N+1 queries
+    when accessing station data.
+    """
+    favorites = crud_favorite.get_user_favorites_with_stations(
+        db, current_user.id, skip, limit
+    )
     return [
-        FavoriteResponse(
+        FavoriteWithStationResponse(
             id=fav.id,
             user_id=fav.user_id,
             station_id=fav.station_id,
-            created_at=fav.created_at
+            created_at=fav.created_at,
+            station=fav.station,
         )
         for fav in favorites
     ]
@@ -66,7 +74,7 @@ async def get_my_favorites(
 async def check_is_favorite(
     station_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """Check if a station is in user's favorites"""
     is_fav = crud_favorite.is_favorite(db, current_user.id, station_id)

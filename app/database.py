@@ -13,7 +13,9 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Convert database URL to async version
 async_database_url = settings.database_url.replace("sqlite:///", "sqlite+aiosqlite:///")
 if "postgresql" in settings.database_url:
-    async_database_url = settings.database_url.replace("postgresql", "postgresql+asyncpg")
+    async_database_url = settings.database_url.replace(
+        "postgresql", "postgresql+asyncpg"
+    )
 
 async_engine = create_async_engine(
     async_database_url,

@@ -4,7 +4,6 @@ import time
 import logging
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import ASGIApp
 
 from app.utils.metrics import request_count, request_duration, errors_total
 
@@ -23,7 +22,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         # Log request start
         logger.info(
-            f"Request started",
+            "Request started",
             extra={
                 "request_id": request_id,
                 "method": method,
@@ -42,11 +41,13 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
             # Track metrics
             request_duration.labels(method=method, endpoint=path).observe(duration)
-            request_count.labels(method=method, endpoint=path, status_code=response.status_code).inc()
+            request_count.labels(
+                method=method, endpoint=path, status_code=response.status_code
+            ).inc()
 
             # Log request completion
             logger.info(
-                f"Request completed",
+                "Request completed",
                 extra={
                     "request_id": request_id,
                     "method": method,
@@ -71,7 +72,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
             # Log error
             logger.error(
-                f"Request failed with exception",
+                "Request failed with exception",
                 extra={
                     "request_id": request_id,
                     "method": method,
@@ -102,7 +103,7 @@ class PerformanceMiddleware(BaseHTTPMiddleware):
         # Warn if slow
         if duration > 1.0:
             logger.warning(
-                f"Slow request detected",
+                "Slow request detected",
                 extra={
                     "path": request.url.path,
                     "method": request.method,

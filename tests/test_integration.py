@@ -9,7 +9,6 @@ from app.database import Base, get_db
 from app.main import app
 from app.models import station, user
 
-
 # Create test database
 TEST_SQLALCHEMY_DATABASE_URL = "sqlite:///./test_voltway.db"
 engine = create_engine(

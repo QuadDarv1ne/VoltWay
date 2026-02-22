@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
-from app.utils.auth import get_password_hash
+from app.utils.auth import get_password_hash, verify_password as auth_verify_password
 
 
 def get_user_by_username(db: Session, username: str):
@@ -47,9 +47,13 @@ def update_user(db: Session, user_id: int, user_update: UserUpdate):
     if not db_user:
         return None
 
-    update_data = user_update.dict(exclude_unset=True)
+    update_data = user_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
-        setattr(db_user, field, value)
+        if field == "password" and value is not None:
+            # Hash password before saving
+            setattr(db_user, "hashed_password", get_password_hash(value))
+        else:
+            setattr(db_user, field, value)
 
     db.commit()
     db.refresh(db_user)
@@ -73,7 +77,7 @@ def authenticate_user(db: Session, username: str, password: str):
     if not user or not user.is_active:
         return None
 
-    if not verify_password(password, user.hashed_password):
+    if not auth_verify_password(password, user.hashed_password):
         return None
 
     return user
@@ -81,6 +85,4 @@ def authenticate_user(db: Session, username: str, password: str):
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain password against a hashed password"""
-    from app.utils.auth import verify_password as auth_verify_password
-
     return auth_verify_password(plain_password, hashed_password)

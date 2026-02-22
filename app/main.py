@@ -1,4 +1,5 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 
 import sentry_sdk
@@ -9,13 +10,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
-from app.api import auth, favorites, monitoring, notifications, stations
 from app.api.exceptions import VoltWayException
 from app.api.v1 import v1_router
 from app.api.v2 import v2_router
 from app.core.config import settings
+from app.middleware.https_redirect import HTTPSRedirectMiddleware
 from app.middleware.logging import RequestLoggingMiddleware, PerformanceMiddleware
 from app.services.notifications import notification_service
 from app.utils import logging as app_logging
@@ -36,11 +38,19 @@ if settings.sentry_dsn:
 app_logging.setup_logging()
 logger = logging.getLogger(__name__)
 
-# Initialize rate limiter
-limiter = Limiter(key_func=get_remote_address)
+# Initialize rate limiter with settings from config
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[
+        f"{settings.rate_limit_requests}/{settings.rate_limit_period_seconds}seconds"
+    ],
+    storage_uri="memory://",  # Use memory storage for simplicity
+)
 
 
-def _rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+def rate_limit_exceeded_handler(
+    request: Request, exc: RateLimitExceeded
+) -> JSONResponse:
     """Handle rate limit exceeded errors"""
     return JSONResponse(
         status_code=429,
@@ -57,6 +67,7 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting up VoltWay application")
     import asyncio
+
     asyncio.create_task(cleanup_manager.start_cleanup_scheduler())
     yield
     # Shutdown
@@ -64,7 +75,9 @@ async def lifespan(app: FastAPI):
     cleanup_manager.stop_cleanup_scheduler()
     try:
         cleaned_count, error_count = cleanup_on_shutdown()
-        logger.info(f"Temporary file cleanup: {cleaned_count} items cleaned, {error_count} errors")
+        logger.info(
+            f"Temporary file cleanup: {cleaned_count} items cleaned, {error_count} errors"
+        )
     except Exception as e:
         logger.error(f"Error during temporary file cleanup: {e}")
 
@@ -76,22 +89,32 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Apply rate limiter
+# Initialize app state
+app.state.https_redirect = False  # Disabled by default, enable in production with HTTPS
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+
+# Add SlowAPI middleware for rate limiting (disabled in testing)
+if os.getenv("TESTING", "false").lower() != "true":
+    app.add_middleware(SlowAPIMiddleware)
+    # Enable HTTPS redirect only in production
+    app.state.https_redirect = os.getenv("HTTPS_REDIRECT", "false").lower() == "true"
+else:
+    # Disable rate limiting in testing by setting a very high limit
+    limiter._default_limits = []
 
 # Add middleware (order matters - add in reverse order of execution)
+# HTTPS redirect only added when enabled
+if app.state.https_redirect:
+    app.add_middleware(HTTPSRedirectMiddleware)
 app.add_middleware(PerformanceMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
-# CORS - Allow localhost for development; configure for production
+# CORS - Use settings.allowed_origins from config
+allowed_origins_list = settings.allowed_origins.split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:8000",
-    ] if settings.debug else ["https://example.com"],  # Configure for production
+    allow_origins=allowed_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -107,7 +130,9 @@ templates = Jinja2Templates(directory="app/templates")
 
 # Exception handlers
 @app.exception_handler(VoltWayException)
-async def voltway_exception_handler(request: Request, exc: VoltWayException) -> JSONResponse:
+async def voltway_exception_handler(
+    request: Request, exc: VoltWayException
+) -> JSONResponse:
     """Handle custom VoltWay exceptions"""
     logger.warning(
         f"VoltWay exception: {exc.error_code}",
@@ -131,17 +156,17 @@ async def voltway_exception_handler(request: Request, exc: VoltWayException) -> 
 async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Handle general exceptions with Sentry"""
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=exc)
-    
+
     # Capture in Sentry
     sentry_sdk.capture_exception(exc)
-    
+
     status_code = 500
     error_code = "INTERNAL_SERVER_ERROR"
     message = "An internal server error occurred"
-    
+
     if settings.debug:
         message = str(exc)
-    
+
     return JSONResponse(
         status_code=status_code,
         content={
@@ -149,6 +174,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
             "error_code": error_code,
         },
     )
+
 
 # Роутеры
 # Register versioned API routers

@@ -20,6 +20,9 @@ v2_router.include_router(stations.router, prefix="/stations", tags=["stations"])
 v2_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 v2_router.include_router(favorites.router, prefix="/favorites", tags=["favorites"])
 v2_router.include_router(monitoring.router, prefix="/monitoring", tags=["monitoring"])
+v2_router.include_router(
+    notifications.router, prefix="/notifications", tags=["notifications"]
+)
 
 
 @v2_router.get("", tags=["version"])
@@ -34,6 +37,6 @@ async def v2_info(response: Response):
             "Enhanced error handling",
             "Better filtering options",
             "Batch operations support",
-            "Improved performance"
-        ]
+            "Improved performance",
+        ],
     }

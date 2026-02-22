@@ -1,6 +1,15 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Float, Index, Integer, String, Text
+from sqlalchemy import (
+    CheckConstraint,
+    Column,
+    DateTime,
+    Float,
+    Index,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -25,16 +34,34 @@ class Station(Base):
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    favorited_by = relationship("Favorite", back_populates="station", cascade="all, delete-orphan")
+    favorited_by = relationship(
+        "Favorite", back_populates="station", cascade="all, delete-orphan"
+    )
 
-    # Add check constraints
+    # Composite indexes for optimized queries
     __table_args__ = (
-        Index(
-            "idx_station_location", "latitude", "longitude"
-        ),  # Index for location-based queries
-        Index(
-            "idx_station_connector", "connector_type"
-        ),  # Index for connector type filtering
-        Index("idx_station_status", "status"),  # Index for status filtering
-        Index("idx_station_power", "power_kw"),  # Index for power filtering
+        # Location-based queries (geospatial search)
+        Index("idx_station_location", "latitude", "longitude"),
+        # Combined index for location + status filtering
+        Index("idx_station_location_status", "latitude", "longitude", "status"),
+        # Connector type filtering
+        Index("idx_station_connector", "connector_type"),
+        # Status filtering
+        Index("idx_station_status", "status"),
+        # Power filtering
+        Index("idx_station_power", "power_kw"),
+        # Combined index for connector + status (common filter combination)
+        Index("idx_station_connector_status", "connector_type", "status"),
+        # Check constraints for data validation
+        CheckConstraint("power_kw > 0", name="chk_power_positive"),
+        CheckConstraint(
+            "latitude >= -90 AND latitude <= 90", name="chk_latitude_range"
+        ),
+        CheckConstraint(
+            "longitude >= -180 AND longitude <= 180", name="chk_longitude_range"
+        ),
+        CheckConstraint(
+            "status IN ('available', 'occupied', 'maintenance', 'unknown')",
+            name="chk_status_valid",
+        ),
     )

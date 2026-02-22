@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+
+from app.schemas.station import Station
 
 
 class FavoriteBase(BaseModel):
@@ -14,8 +16,17 @@ class FavoriteCreate(FavoriteBase):
 
 
 class FavoriteResponse(FavoriteBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     created_at: datetime
 
-    class Config:
-        orm_mode = True
+
+class FavoriteWithStationResponse(FavoriteBase):
+    """Favorite response with full station data included."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    created_at: datetime
+    station: Optional[Station] = None

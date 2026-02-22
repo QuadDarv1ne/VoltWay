@@ -1,8 +1,10 @@
 from datetime import timedelta
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
 from app import crud, schemas
@@ -13,8 +15,11 @@ from app.utils import auth, logging
 router = APIRouter()
 logger = logging.get_logger(__name__)
 
+# Rate limiter for auth endpoints
+limiter = Limiter(key_func=get_remote_address)
+
 # OAuth2 scheme for token authentication
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 def get_current_user(
@@ -55,8 +60,9 @@ def get_current_active_admin(current_user=Depends(get_current_user)):
 
 
 @router.post("/token", response_model=schemas.Token)
+@limiter.limit("5/minute")  # Strict rate limit for login attempts
 async def login_for_access_token(
-    user_login: schemas.UserLogin, db: Session = Depends(get_db)
+    request: Request, user_login: schemas.UserLogin, db: Session = Depends(get_db)
 ):
     """Login endpoint to get access token"""
     user = crud.authenticate_user(db, user_login.username, user_login.password)
@@ -86,7 +92,10 @@ async def read_users_me(current_user=Depends(get_current_user)):
 
 
 @router.post("/users/", response_model=schemas.UserInDB)
-async def create_new_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")  # Rate limit for registration
+async def create_new_user(
+    request: Request, user: schemas.UserCreate, db: Session = Depends(get_db)
+):
     """Create a new user (registration endpoint)"""
     # Check if user already exists
     db_user = crud.get_user_by_username(db, username=user.username)

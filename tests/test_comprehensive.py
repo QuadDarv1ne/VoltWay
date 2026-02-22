@@ -8,7 +8,9 @@ from app.main import app
 
 # Test database configuration
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_voltway.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -33,6 +35,7 @@ def db_session(test_db):
 @pytest.fixture(scope="function")
 def client():
     """Create test client"""
+
     def override_get_db():
         try:
             db = TestingSessionLocal()
@@ -41,7 +44,7 @@ def client():
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app=app) as c:
+    with TestClient(app=app, follow_redirects=False) as c:
         yield c
     app.dependency_overrides.clear()
 
@@ -51,10 +54,10 @@ def test_create_user(client):
     user_data = {
         "username": "testuser",
         "email": "test@example.com",
-        "password": "testpassword123"
+        "password": "testpassword123",
     }
-    
-    response = client.post("/api/v1/users/", json=user_data)
+
+    response = client.post("/api/v1/auth/users/", json=user_data)
     assert response.status_code == 200
     data = response.json()
     assert data["username"] == "testuser"
@@ -82,13 +85,15 @@ def test_station_filters(client):
     # Test connector type filter
     response = client.get("/api/v1/stations?connector_type=CCS")
     assert response.status_code == 200
-    
+
     # Test power filter
     response = client.get("/api/v1/stations?min_power_kw=20")
     assert response.status_code == 200
-    
+
     # Test geographic filter
-    response = client.get("/api/v1/stations?latitude=55.7558&longitude=37.6173&radius_km=10")
+    response = client.get(
+        "/api/v1/stations?latitude=55.7558&longitude=37.6173&radius_km=10"
+    )
     assert response.status_code == 200
 
 
@@ -122,7 +127,7 @@ def test_invalid_coordinates(client):
     # Test invalid latitude (> 90)
     response = client.get("/api/v1/stations?latitude=95")
     assert response.status_code == 422 or response.status_code == 200
-    
+
     # Test invalid longitude (> 180)
     response = client.get("/api/v1/stations?longitude=185")
     assert response.status_code == 422 or response.status_code == 200

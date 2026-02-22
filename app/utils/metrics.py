@@ -1,6 +1,13 @@
 """Prometheus metrics for monitoring"""
 
-from prometheus_client import Counter, Histogram, Gauge, CollectorRegistry, generate_latest, REGISTRY
+from prometheus_client import (
+    Counter,
+    Histogram,
+    Gauge,
+    CollectorRegistry,
+    generate_latest,
+    REGISTRY,
+)
 import time
 from typing import Callable
 from functools import wraps
@@ -84,6 +91,7 @@ errors_total = Counter(
 
 def track_request(endpoint: str):
     """Decorator to track request metrics"""
+
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -91,16 +99,28 @@ def track_request(endpoint: str):
             try:
                 result = await func(*args, **kwargs)
                 duration = time.time() - start_time
-                request_duration.labels(method="GET", endpoint=endpoint).observe(duration)
-                request_count.labels(method="GET", endpoint=endpoint, status_code=200).inc()
+                request_duration.labels(method="GET", endpoint=endpoint).observe(
+                    duration
+                )
+                request_count.labels(
+                    method="GET", endpoint=endpoint, status_code=200
+                ).inc()
                 return result
             except Exception as e:
                 duration = time.time() - start_time
-                request_duration.labels(method="GET", endpoint=endpoint).observe(duration)
-                request_count.labels(method="GET", endpoint=endpoint, status_code=500).inc()
-                errors_total.labels(error_type=type(e).__name__, endpoint=endpoint).inc()
+                request_duration.labels(method="GET", endpoint=endpoint).observe(
+                    duration
+                )
+                request_count.labels(
+                    method="GET", endpoint=endpoint, status_code=500
+                ).inc()
+                errors_total.labels(
+                    error_type=type(e).__name__, endpoint=endpoint
+                ).inc()
                 raise
+
         return wrapper
+
     return decorator
 
 

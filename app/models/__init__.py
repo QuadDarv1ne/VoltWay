@@ -5,9 +5,9 @@ class Base(DeclarativeBase):
     pass
 
 
-from . import station
-from . import user
+# Import all models to ensure they are registered with Base
+from . import station  # noqa: F401
+from . import user  # noqa: F401
+from . import favorite  # noqa: F401
 
-__all__ = ["Base", "station", "user"]
-
-__all__ = ["Station", "User", "Base"]
+__all__ = ["Base", "station", "user", "favorite"]

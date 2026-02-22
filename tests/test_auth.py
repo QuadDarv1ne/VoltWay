@@ -2,22 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import crud
-from app.database import SessionLocal
-from app.main import app
 from app.models.user import User
 from app.utils.auth import get_password_hash
-
-client = TestClient(app)
-
-
-@pytest.fixture
-def db_session():
-    """Create a database session for testing"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @pytest.fixture
@@ -42,17 +28,17 @@ def test_user(db_session):
     db_session.commit()
 
 
-def test_user_registration():
+def test_user_registration(auth_client):
     """Test user registration endpoint"""
     user_data = {
         "username": "newuser",
         "email": "newuser@example.com",
-        "password": "newpassword",
+        "password": "NewPassword123!",  # Strong password
         "is_active": True,
         "is_admin": False,
     }
 
-    response = client.post("/api/v1/users/", json=user_data)
+    response = auth_client.post("/api/v1/auth/users/", json=user_data)
     assert response.status_code == 200
 
     data = response.json()
@@ -61,70 +47,77 @@ def test_user_registration():
     assert "id" in data
 
 
-def test_user_login():
+def test_user_login(auth_client):
     """Test user login endpoint"""
     # First create a user to login with
     user_data = {
         "username": "loginuser",
         "email": "login@example.com",
-        "password": "loginpassword",
+        "password": "LoginPassword123!",  # Strong password
         "is_active": True,
         "is_admin": False,
     }
 
     # Create the user
-    register_response = client.post("/api/v1/users/", json=user_data)
+    register_response = auth_client.post("/api/v1/auth/users/", json=user_data)
     assert register_response.status_code == 200
 
-    # Now try to login
-    login_data = {"username": "loginuser", "password": "loginpassword"}
+    # Now try to login using JSON
+    login_data = {"username": "loginuser", "password": "LoginPassword123!"}
 
-    response = client.post(
-        "/api/v1/token", data=login_data  # OAuth2PasswordRequestForm expects form data
+    response = auth_client.post(
+        "/api/v1/auth/token",
+        json=login_data,
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 200, f"Login failed: {response.json()}"
     data = response.json()
     assert "access_token" in data
     assert data["token_type"] == "bearer"
 
 
-def test_invalid_login():
+def test_invalid_login(auth_client):
     """Test login with invalid credentials"""
     login_data = {"username": "nonexistent", "password": "wrongpassword"}
 
-    response = client.post("/api/v1/token", data=login_data)
+    response = auth_client.post(
+        "/api/v1/auth/token",
+        json=login_data,
+    )
 
     assert response.status_code == 401
 
 
-def test_get_current_user():
+def test_get_current_user(auth_client):
     """Test getting current user info with valid token"""
     # First get a token by logging in
     user_data = {
         "username": "currentuser",
         "email": "current@example.com",
-        "password": "currentpassword",
+        "password": "CurrentPass123!",  # Strong password
         "is_active": True,
         "is_admin": False,
     }
 
     # Create the user
-    register_response = client.post("/api/v1/users/", json=user_data)
+    register_response = auth_client.post("/api/v1/auth/users/", json=user_data)
     assert register_response.status_code == 200
 
     # Login to get token
-    login_data = {"username": "currentuser", "password": "currentpassword"}
+    login_data = {"username": "currentuser", "password": "CurrentPass123!"}
 
-    login_response = client.post("/api/v1/token", data=login_data)
+    login_response = auth_client.post(
+        "/api/v1/auth/token",
+        json=login_data,
+    )
 
-    assert login_response.status_code == 200
+    assert login_response.status_code == 200, f"Login failed: {login_response.json()}"
     token_data = login_response.json()
     access_token = token_data["access_token"]
 
     # Use token to get user info
     headers = {"Authorization": f"Bearer {access_token}"}
-    response = client.get("/api/v1/users/me", headers=headers)
+    response = auth_client.get("/api/v1/auth/users/me", headers=headers)
 
     assert response.status_code == 200
     user_info = response.json()
@@ -132,61 +125,61 @@ def test_get_current_user():
     assert user_info["email"] == "current@example.com"
 
 
-def test_get_current_user_without_token():
+def test_get_current_user_without_token(auth_client):
     """Test getting current user info without token"""
-    response = client.get("/api/v1/users/me")
+    response = auth_client.get("/api/v1/auth/users/me")
     assert response.status_code == 401
 
 
-def test_duplicate_username_registration():
+def test_duplicate_username_registration(auth_client):
     """Test that registering with duplicate username fails"""
     user_data = {
         "username": "duplicateuser",
         "email": "dup1@example.com",
-        "password": "password123",
+        "password": "DuplicatePass1!",  # Strong password
         "is_active": True,
         "is_admin": False,
     }
 
     # Register first user
-    response1 = client.post("/api/v1/users/", json=user_data)
+    response1 = auth_client.post("/api/v1/auth/users/", json=user_data)
     assert response1.status_code == 200
 
     # Try to register with same username
     user_data2 = {
         "username": "duplicateuser",  # Same username
         "email": "dup2@example.com",  # Different email
-        "password": "password",
+        "password": "AnotherPass123!",
         "is_active": True,
         "is_admin": False,
     }
 
-    response2 = client.post("/api/v1/users/", json=user_data2)
+    response2 = auth_client.post("/api/v1/auth/users/", json=user_data2)
     assert response2.status_code == 400
 
 
-def test_duplicate_email_registration():
+def test_duplicate_email_registration(auth_client):
     """Test that registering with duplicate email fails"""
     user_data = {
         "username": "uniqueuser1",
         "email": "same@example.com",
-        "password": "password123",
+        "password": "UniquePass123!",  # Strong password
         "is_active": True,
         "is_admin": False,
     }
 
     # Register first user
-    response1 = client.post("/api/v1/users/", json=user_data)
+    response1 = auth_client.post("/api/v1/auth/users/", json=user_data)
     assert response1.status_code == 200
 
     # Try to register with same email
     user_data2 = {
         "username": "uniqueuser2",  # Different username
         "email": "same@example.com",  # Same email
-        "password": "password",
+        "password": "AnotherUniquePass1!",
         "is_active": True,
         "is_admin": False,
     }
 
-    response2 = client.post("/api/v1/users/", json=user_data2)
+    response2 = auth_client.post("/api/v1/auth/users/", json=user_data2)
     assert response2.status_code == 400

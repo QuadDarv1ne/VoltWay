@@ -12,4 +12,6 @@ v1_router.include_router(stations.router, prefix="/stations", tags=["stations"])
 v1_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 v1_router.include_router(favorites.router, prefix="/favorites", tags=["favorites"])
 v1_router.include_router(monitoring.router, prefix="/monitoring", tags=["monitoring"])
-# v1_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
+v1_router.include_router(
+    notifications.router, prefix="/notifications", tags=["notifications"]
+)
