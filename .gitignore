@@ -152,9 +152,9 @@ Thumbs.db
 # Logs
 *.log
 
-# Alembic
-alembic/versions/*.py
-!alembic/versions/
+# Alembic - keep migration files
+# alembic/versions/*.py
+# !alembic/versions/
 
 # Redis dump
 dump.rdb
