@@ -5,7 +5,7 @@ import logging
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.utils.metrics import request_count, request_duration, errors_total
+from app.utils.metrics import http_requests_total, request_duration, errors_total
 
 logger = logging.getLogger(__name__)
 

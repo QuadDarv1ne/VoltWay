@@ -4,7 +4,7 @@ GraphQL API v3 router.
 Provides GraphQL endpoint for flexible querying.
 """
 
-from fastapi import APIRouter, Depends, Request, ContextMiddleware
+from fastapi import APIRouter, Depends, Request
 from strawberry.fastapi import GraphQLRouter
 from typing import Any, Dict, Optional
 import asyncio

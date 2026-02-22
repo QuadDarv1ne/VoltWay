@@ -7,10 +7,11 @@ Defines Strawberry types for stations, users, and other entities.
 import strawberry
 from datetime import datetime
 from typing import List, Optional
+from enum import Enum
 
 
 @strawberry.enum
-class StationStatus:
+class StationStatus(Enum):
     """Station status enum"""
     AVAILABLE = "available"
     OCCUPIED = "occupied"
