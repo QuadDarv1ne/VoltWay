@@ -17,12 +17,14 @@ from app.api.exceptions import VoltWayException
 from app.api.health import router as health_router
 from app.api.v1 import v1_router
 from app.api.v2 import v2_router
+from app.api.v3 import router as v3_router
 from app.core.config import settings
 from app.middleware.compression import CompressionMiddleware
 from app.middleware.https_redirect import HTTPSRedirectMiddleware
 from app.middleware.logging import RequestLoggingMiddleware, PerformanceMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
+from app.middleware.audit import AuditLoggingMiddleware
 from app.services.notifications import notification_service
 from app.utils import logging as app_logging
 from app.utils.cache_cleanup import cleanup_manager
@@ -179,6 +181,10 @@ app.add_middleware(
 
 # Security headers middleware (always enabled for production security)
 app.add_middleware(SecurityHeadersMiddleware)
+
+# Audit logging middleware (security tracking)
+app.add_middleware(AuditLoggingMiddleware)
+
 # Монтирование статических файлов
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 # Mount Socket.IO app
@@ -243,6 +249,7 @@ app.include_router(health_router)
 # Register versioned API routers
 app.include_router(v1_router)
 app.include_router(v2_router)
+app.include_router(v3_router, prefix="/api")
 
 
 @app.get("/")

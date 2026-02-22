@@ -10,5 +10,6 @@ from . import station  # noqa: F401
 from . import user  # noqa: F401
 from . import favorite  # noqa: F401
 from . import api_key  # noqa: F401
+from . import audit_log  # noqa: F401
 
-__all__ = ["Base", "station", "user", "favorite", "api_key"]
+__all__ = ["Base", "station", "user", "favorite", "api_key", "audit_log"]
