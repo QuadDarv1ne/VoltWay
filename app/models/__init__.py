@@ -13,5 +13,6 @@ from . import api_key  # noqa: F401
 from . import audit_log  # noqa: F401
 from . import review  # noqa: F401
 from . import reservation  # noqa: F401
+from . import coupon  # noqa: F401
 
-__all__ = ["Base", "station", "user", "favorite", "api_key", "audit_log", "review", "reservation"]
+__all__ = ["Base", "station", "user", "favorite", "api_key", "audit_log", "review", "reservation", "coupon"]
