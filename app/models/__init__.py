@@ -9,5 +9,6 @@ class Base(DeclarativeBase):
 from . import station  # noqa: F401
 from . import user  # noqa: F401
 from . import favorite  # noqa: F401
+from . import api_key  # noqa: F401
 
-__all__ = ["Base", "station", "user", "favorite"]
+__all__ = ["Base", "station", "user", "favorite", "api_key"]

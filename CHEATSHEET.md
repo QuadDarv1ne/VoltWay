@@ -49,12 +49,22 @@ GET  /api/v1/stations/{id}      # Конкретная станция
 POST /api/v1/stations/update_cache  # Обновить кэш
 ```
 
-### Admin (требует X-API-Key)
+### Admin (требует X-API-Key с ролью admin)
 ```bash
+# Circuit Breakers
 GET  /api/v1/admin/circuit-breakers        # Статус circuit breakers
 POST /api/v1/admin/circuit-breakers/{name}/reset  # Сброс breaker
+
+# Cache Management
 GET  /api/v1/admin/cache/stats             # Статистика кэша
 POST /api/v1/admin/cache/clear             # Очистить кэш
+POST /api/v1/admin/cache/clear-stations    # Очистить кэш станций
+
+# API Key Management
+POST   /api/v1/admin/api-keys              # Создать API ключ
+GET    /api/v1/admin/api-keys              # Список ключей
+GET    /api/v1/admin/api-keys/stats        # Статистика ключей
+DELETE /api/v1/admin/api-keys/{id}         # Деактивировать ключ
 ```
 
 ## Тестирование
@@ -276,6 +286,30 @@ make lint          # Проверить код
 make quality       # Все проверки качества
 ```
 
+## API Key Management
+
+```bash
+# Создать admin ключ
+python manage_api_keys.py create --name "Admin" --role admin
+
+# Создать user ключ с кастомным rate limit
+python manage_api_keys.py create \
+  --name "Mobile App" \
+  --role user \
+  --rate-limit 1000 \
+  --rate-period 60 \
+  --expires-in-days 365
+
+# Список всех ключей
+python manage_api_keys.py list
+
+# Информация о ключе
+python manage_api_keys.py info --id 1
+
+# Деактивировать ключ
+python manage_api_keys.py deactivate --id 1
+```
+
 ## Полезные curl команды
 
 ```bash
@@ -291,17 +325,31 @@ curl "http://localhost:8000/api/v1/stations?skip=0&limit=10"
 # Поиск по локации
 curl "http://localhost:8000/api/v1/stations?latitude=55.7558&longitude=37.6173&radius_km=10"
 
-# Circuit breakers (с API ключом)
-curl -H "X-API-Key: your-key" \
+# Circuit breakers (с API ключом admin)
+curl -H "X-API-Key: your-admin-key" \
   http://localhost:8000/api/v1/admin/circuit-breakers
 
 # Статистика кэша
-curl -H "X-API-Key: your-key" \
+curl -H "X-API-Key: your-admin-key" \
   http://localhost:8000/api/v1/admin/cache/stats
 
 # Очистить кэш станций
-curl -X POST -H "X-API-Key: your-key" \
+curl -X POST -H "X-API-Key: your-admin-key" \
   http://localhost:8000/api/v1/admin/cache/clear-stations
+
+# Создать API ключ
+curl -X POST -H "X-API-Key: your-admin-key" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"New App","role":"user","rate_limit_requests":100}' \
+  http://localhost:8000/api/v1/admin/api-keys
+
+# Список API ключей
+curl -H "X-API-Key: your-admin-key" \
+  http://localhost:8000/api/v1/admin/api-keys
+
+# Статистика API ключей
+curl -H "X-API-Key: your-admin-key" \
+  http://localhost:8000/api/v1/admin/api-keys/stats
 ```
 
 ## Отладка

@@ -70,12 +70,28 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info(f"Starting up {settings.app_name} v{settings.app_version}")
     import asyncio
+    from app.services.background_tasks import background_task_manager
 
+    # Start cleanup scheduler
     asyncio.create_task(cleanup_manager.start_cleanup_scheduler())
+    
+    # Start background tasks
+    await background_task_manager.start()
+    logger.info("Background tasks started")
+    
     yield
+    
     # Shutdown
     logger.info("Shutting down VoltWay application")
+    
+    # Stop background tasks
+    await background_task_manager.stop()
+    logger.info("Background tasks stopped")
+    
+    # Stop cleanup scheduler
     cleanup_manager.stop_cleanup_scheduler()
+    
+    # Cleanup temporary files
     try:
         cleaned_count, error_count = cleanup_on_shutdown()
         logger.info(

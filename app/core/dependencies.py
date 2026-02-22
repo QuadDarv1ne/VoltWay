@@ -34,16 +34,78 @@ def get_request_id(request: Request) -> str:
 
 
 async def verify_api_key(
-    x_api_key: Optional[str] = Header(None, description="API key for authentication")
-) -> Optional[str]:
+    x_api_key: Optional[str] = Header(None, description="API key for authentication"),
+    db: AsyncSession = Depends(get_db),
+) -> "APIKey":
     """
     Verify API key for protected endpoints.
     
-    Returns None if no key required, raises HTTPException if invalid.
+    Args:
+        x_api_key: API key from header
+        db: Database session
+        
+    Returns:
+        APIKey instance if valid
+        
+    Raises:
+        HTTPException: If key is missing, invalid, or expired
     """
-    # TODO: Implement actual API key verification
-    # For now, just return the key if provided
-    return x_api_key
+    from app.crud.api_key import get_api_key_by_key, update_last_used
+    
+    if not x_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="API key required",
+            headers={"WWW-Authenticate": "ApiKey"},
+        )
+    
+    api_key = await get_api_key_by_key(db, x_api_key)
+    
+    if not api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API key",
+            headers={"WWW-Authenticate": "ApiKey"},
+        )
+    
+    if not api_key.is_valid():
+        detail = "API key expired" if api_key.is_expired() else "API key inactive"
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=detail,
+            headers={"WWW-Authenticate": "ApiKey"},
+        )
+    
+    # Update last used timestamp (fire and forget)
+    await update_last_used(db, api_key)
+    
+    return api_key
+
+
+async def require_admin(
+    api_key: "APIKey" = Depends(verify_api_key),
+) -> "APIKey":
+    """
+    Require admin role for endpoint access.
+    
+    Args:
+        api_key: Verified API key
+        
+    Returns:
+        APIKey instance if admin
+        
+    Raises:
+        HTTPException: If not admin
+    """
+    from app.models.api_key import APIKeyRole
+    
+    if api_key.role != APIKeyRole.ADMIN.value:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+    
+    return api_key
 
 
 def get_pagination_params(
