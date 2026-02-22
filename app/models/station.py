@@ -33,9 +33,19 @@ class Station(Base):
     hours = Column(Text, nullable=True)
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # Aggregate ratings (denormalized for performance)
+    avg_rating = Column(Float, nullable=True)  # Cached average rating
+    review_count = Column(Integer, default=0, nullable=False)
+
     # Relationships
     favorited_by = relationship(
         "Favorite", back_populates="station", cascade="all, delete-orphan"
+    )
+    reviews = relationship(
+        "Review", back_populates="station", cascade="all, delete-orphan", lazy="dynamic"
+    )
+    reservations = relationship(
+        "Reservation", back_populates="station", lazy="dynamic"
     )
 
     # Composite indexes for optimized queries
