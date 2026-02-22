@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from app.api import admin, auth, favorites, monitoring, notifications, stations, reviews, reservations, analytics, coupons
+from app.api import notifications_api, statistics
 
 # Create v1 router
 v1_router = APIRouter(prefix="/api/v1", tags=["v1"])
@@ -19,4 +20,6 @@ v1_router.include_router(reviews.router, tags=["reviews"])
 v1_router.include_router(reservations.router, tags=["reservations"])
 v1_router.include_router(analytics.router, tags=["analytics"])
 v1_router.include_router(coupons.router, tags=["coupons"])
+v1_router.include_router(notifications_api.router, tags=["notifications-api"])
+v1_router.include_router(statistics.router, tags=["statistics"])
 v1_router.include_router(admin.router, tags=["admin"])
