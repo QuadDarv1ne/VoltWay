@@ -1,0 +1,87 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run security scan weekly on Monday at 00:00
+    - cron: '0 0 * * 1'
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Safety check (dependency vulnerabilities)
+      run: |
+        safety check -r requirements.txt --output json || true
+
+    - name: Run Bandit (security linter)
+      run: |
+        bandit -r app/ -f json -o bandit-report.json || true
+
+    - name: Upload Bandit report
+      uses: actions/upload-artifact@v3
+      with:
+        name: bandit-report
+        path: bandit-report.json
+
+    - name: Run Semgrep (static analysis)
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: >-
+          p/security-audit
+          p/secrets
+
+    - name: Docker image scan (if Dockerfile exists)
+      if: exists('Dockerfile')
+      run: |
+        # Build image for scanning
+        docker build -t voltway-scan . --no-cache
+        
+        # Run Trivy scanner (if available)
+        if command -v trivy &> /dev/null; then
+          trivy image voltway-scan --format json -o trivy-report.json || true
+        else
+          echo "Trivy not available, skipping image scan"
+        fi
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          trivy-report.json
+
+  docker-scan:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build Docker image
+      run: |
+        docker build -t voltway:${{ github.sha }} .
+
+    - name: Run Docker Scout (if available)
+      run: |
+        if command -v docker &> /dev/null && [ -n "${{ secrets.DOCKER_USERNAME }}" ]; then
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker scout cves voltway:${{ github.sha }} || true
+        fi

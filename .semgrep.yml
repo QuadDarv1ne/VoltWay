@@ -1,0 +1,57 @@
+# Semgrep configuration for VoltWay
+# Custom rules for security and code quality
+
+rules:
+  # Security rules
+  - id: hardcoded-password
+    pattern: password = "..."
+    message: Hardcoded password detected
+    languages: [python]
+    severity: ERROR
+
+  - id: hardcoded-secret
+    pattern: secret = "..."
+    message: Hardcoded secret detected
+    languages: [python]
+    severity: ERROR
+
+  - id: sql-injection-risk
+    pattern: execute($QUERY % ...)
+    message: Potential SQL injection - use parameterized queries
+    languages: [python]
+    severity: WARNING
+
+  - id: eval-usage
+    pattern: eval(...)
+    message: Avoid using eval() - security risk
+    languages: [python]
+    severity: ERROR
+
+  - id: assert-in-production
+    pattern: assert ...
+    message: Assert statements are removed in optimized Python
+    languages: [python]
+    severity: WARNING
+
+  # Code quality rules
+  - id: missing-timeout
+    pattern: requests.get($URL)
+    message: HTTP request without timeout
+    languages: [python]
+    severity: INFO
+
+  - id: bare-except
+    pattern: |
+      try:
+        ...
+      except:
+        ...
+    message: Bare except clause catches all exceptions
+    languages: [python]
+    severity: WARNING
+
+  - id: print-in-production
+    pattern: print(...)
+    message: Consider using logger instead of print
+    languages: [python]
+    severity: INFO

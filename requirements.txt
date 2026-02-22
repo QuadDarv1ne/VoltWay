@@ -14,12 +14,16 @@ geoalchemy2>=0.14.0
 redis>=5.2.0
 python-dotenv>=1.0.0
 httpx>=0.28.0  # для внешних API запросов
+aiolimiter>=1.2.0  # rate limiter для внешних API
 jinja2>=3.1.5  # для шаблонов
 
 # Testing
 pytest>=8.3.0
 pytest-asyncio>=0.25.0
 pytest-cov>=6.0.0
+pytest-httpx>=0.35.0  # HTTPX mocking for tests
+responses>=0.25.0  # HTTP requests mocking
+pytest-mock>=3.14.0  # pytest plugin for mock
 
 # Security
 bcrypt>=4.2.0
@@ -28,6 +32,14 @@ python-jose[cryptography]>=3.4.0
 
 # Monitoring
 sentry-sdk[fastapi]>=2.20.0
+# OpenTelemetry for distributed tracing
+opentelemetry-api>=1.28.0
+opentelemetry-sdk>=1.28.0
+opentelemetry-instrumentation-fastapi>=0.49b0
+opentelemetry-instrumentation-httpx>=0.49b0
+opentelemetry-instrumentation-sqlalchemy>=0.49b0
+opentelemetry-instrumentation-redis>=0.49b0
+opentelemetry-exporter-otlp>=1.28.0
 # Rate limiting
 slowapi>=0.1.9
 # Prometheus metrics

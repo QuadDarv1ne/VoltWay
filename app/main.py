@@ -71,26 +71,51 @@ async def lifespan(app: FastAPI):
     logger.info(f"Starting up {settings.app_name} v{settings.app_version}")
     import asyncio
     from app.services.background_tasks import background_task_manager
+    from app.services.external_api import close_http_client
+    from app.utils.telemetry import instrument_app, setup_opentelemetry
+
+    # Initialize OpenTelemetry if enabled
+    tracer = None
+    if os.getenv("ENABLE_OTEL", "false").lower() == "true":
+        otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+        tracer = setup_opentelemetry(
+            service_name=settings.app_name,
+            otlp_endpoint=otlp_endpoint,
+            enable_console_exporter=settings.debug,
+        )
+        if tracer:
+            logger.info("OpenTelemetry initialized")
+            instrument_app(app)
 
     # Start cleanup scheduler
     asyncio.create_task(cleanup_manager.start_cleanup_scheduler())
-    
+
     # Start background tasks
     await background_task_manager.start()
     logger.info("Background tasks started")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down VoltWay application")
-    
+
+    # Shutdown OpenTelemetry
+    if tracer:
+        from app.utils.telemetry import shutdown_opentelemetry
+        shutdown_opentelemetry()
+        logger.info("OpenTelemetry shutdown complete")
+
+    # Close HTTP client
+    await close_http_client()
+    logger.info("HTTP client closed")
+
     # Stop background tasks
     await background_task_manager.stop()
     logger.info("Background tasks stopped")
-    
+
     # Stop cleanup scheduler
     cleanup_manager.stop_cleanup_scheduler()
-    
+
     # Cleanup temporary files
     try:
         cleaned_count, error_count = cleanup_on_shutdown()

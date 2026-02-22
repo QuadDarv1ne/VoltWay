@@ -22,8 +22,8 @@ class Station(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), index=True, nullable=False)
     address = Column(Text, nullable=False)
-    latitude = Column(Float, nullable=False)
-    longitude = Column(Float, nullable=False)
+    latitude = Column(Float, nullable=False, index=True)
+    longitude = Column(Float, nullable=False, index=True)
     connector_type = Column(String(50), nullable=False)  # CCS, CHAdeMO, Type 2
     power_kw = Column(Float, nullable=False)
     status = Column(
@@ -65,3 +65,17 @@ class Station(Base):
             name="chk_status_valid",
         ),
     )
+
+    def distance_to(self, lat: float, lon: float) -> float:
+        """
+        Calculate distance from this station to a point.
+
+        Args:
+            lat: Latitude of target point
+            lon: Longitude of target point
+
+        Returns:
+            Distance in kilometers
+        """
+        from app.utils.geo import haversine_distance
+        return haversine_distance(self.latitude, self.longitude, lat, lon)

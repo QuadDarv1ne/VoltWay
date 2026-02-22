@@ -8,6 +8,7 @@ from fastapi import Depends, Header, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import AsyncSessionLocal
+from app.models.api_key import APIKey
 from app.repositories.station import StationRepository, station_repository
 
 

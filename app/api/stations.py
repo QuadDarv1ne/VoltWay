@@ -1,18 +1,17 @@
 import logging
-import re
 import time
 from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import crud, models, schemas
+from app import schemas
 from app.api.exceptions import StationNotFoundError, InvalidFilterError, DatabaseError
 from app.database import get_async_db
-from app.utils import geo
+from app.repositories.station import station_repository
+from app.services.station import station_service
 from app.utils.cache.manager import cache
-from app.utils.logging import log_performance, log_cache_operation
+from app.utils.logging import log_performance
 
 logger = logging.getLogger(__name__)
 
@@ -78,40 +77,29 @@ async def read_stations(
                 duration_ms=cache_duration,
             )
 
-        # Build query
-        query = select(models.station.Station)
-
-        # Фильтр по типу разъема с санитизацией для предотвращения SQL injection
-        if connector_type:
-            # Экранирование специальных символов LIKE: %, _, \
-            sanitized_connector = re.sub(r"([%_\\])", r"\\\1", connector_type)
-            query = query.where(
-                models.station.Station.connector_type.ilike(f"%{sanitized_connector}%")
-            )
-
-        # Фильтр по мощности
-        if min_power_kw:
-            query = query.where(models.station.Station.power_kw >= min_power_kw)
-
-        # Проверяем, есть ли геофильтр
+        # Use repository for database queries
         if latitude is not None and longitude is not None and radius_km is not None:
-            # Для геофильтра используем async версию функции
-            stations = await geo.get_geospatial_filter_async(
-                db,
-                latitude,
-                longitude,
-                radius_km,
-                connector_type,
-                min_power_kw,
-                skip,
-                limit,
+            # Geospatial query using repository
+            stations = await station_repository.get_by_location(
+                db=db,
+                latitude=latitude,
+                longitude=longitude,
+                radius_km=radius_km,
+                connector_type=connector_type,
+                min_power_kw=min_power_kw,
+                skip=skip,
+                limit=limit,
             )
             logger.info(f"Найдено {len(stations)} станций с геофильтрацией")
         else:
-            # Без геофильтра используем обычный SQL запрос
-            query = query.offset(skip).limit(limit)
-            result = await db.execute(query)
-            stations = result.scalars().all()
+            # Simple filter query using repository
+            stations = await station_repository.get_by_filters(
+                db=db,
+                connector_type=connector_type,
+                min_power_kw=min_power_kw,
+                skip=skip,
+                limit=limit,
+            )
             logger.info(f"Найдено {len(stations)} станций")
 
         # Cache the result for 10 minutes
@@ -154,17 +142,14 @@ async def read_station(
                 "station_id must be positive", {"station_id": station_id}
             )
 
-        query = select(models.station.Station).where(
-            models.station.Station.id == station_id
-        )
-        result = await db.execute(query)
-        db_station = result.scalar_one_or_none()
+        # Use repository for single station retrieval
+        station = await station_repository.get(db, station_id)
 
-        if db_station is None:
+        if station is None:
             logger.warning(f"Станция с ID {station_id} не найдена")
             raise StationNotFoundError(station_id)
 
-        return db_station
+        return station
     except (StationNotFoundError, InvalidFilterError):
         raise
     except Exception as e:
@@ -184,7 +169,10 @@ async def update_cache(
     """Обновление кэша данными из внешних API"""
     try:
         background_tasks.add_task(
-            update_stations_from_api, latitude, longitude, radius, db
+            station_service.update_stations_from_api,
+            latitude,
+            longitude,
+            radius,
         )
         logger.info(
             f"Запущено обновление кэша для координат ({latitude}, {longitude}), "
@@ -194,46 +182,3 @@ async def update_cache(
     except Exception as e:
         logger.error(f"Ошибка при запуске обновления кэша: {e}")
         raise DatabaseError("update_cache", str(e))
-
-
-async def update_stations_from_api(
-    lat: float, lon: float, radius: int, db: AsyncSession
-):
-    """Фоновая задача для обновления станций из API"""
-    from app.services.external_api import fetch_stations_from_open_charge_map
-
-    try:
-        logger.info(f"Starting cache update for lat={lat}, lon={lon}, radius={radius}")
-        stations_data = await fetch_stations_from_open_charge_map(lat, lon, radius)
-
-        if not stations_data:
-            logger.warning(
-                f"Нет данных для обновления кэша для координат ({lat}, {lon})"
-            )
-            return
-
-        added_count = 0
-        for data in stations_data:
-            # Проверка существования станции
-            query = select(models.station.Station).where(
-                (models.station.Station.latitude == data["latitude"])
-                & (models.station.Station.longitude == data["longitude"])
-            )
-            result = await db.execute(query)
-            existing = result.scalar_one_or_none()
-
-            if not existing:
-                station = models.station.Station(**data)
-                db.add(station)
-                added_count += 1
-
-        await db.commit()
-        # Clear the station cache after updating
-        cache.cache.clear_station_cache()
-        logger.info(
-            f"Cache updated with {added_count} new stations out of "
-            f"{len(stations_data)} total"
-        )
-    except Exception as e:
-        logger.error(f"Error updating cache: {e}")
-        await db.rollback()

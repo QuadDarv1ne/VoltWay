@@ -88,6 +88,11 @@ class Settings(BaseSettings):
         default=500, ge=0, description="Minimum response size for compression (bytes)"
     )
 
+    # Database
+    use_postgis: bool = Field(
+        default=False, description="Use PostGIS for geospatial queries"
+    )
+
     @field_validator("secret_key")
     @classmethod
     def validate_secret_key(cls, v: str) -> str:

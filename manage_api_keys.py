@@ -33,8 +33,8 @@ async def create_key(args):
             print(f"Error: Invalid role '{args.role}'")
             print(f"Valid roles: {', '.join([r.value for r in APIKeyRole])}")
             return 1
-        
-        api_key = await create_api_key(
+
+        api_key, plain_key = await create_api_key(
             db=db,
             name=args.name,
             role=role,
@@ -43,18 +43,19 @@ async def create_key(args):
             rate_limit_period=args.rate_period,
             expires_in_days=args.expires_in_days,
         )
-        
+
         print("\n✅ API Key created successfully!")
         print(f"\nID: {api_key.id}")
         print(f"Name: {api_key.name}")
         print(f"Role: {api_key.role}")
+        print(f"Key Prefix: {api_key.key_prefix}...")
         print(f"Rate Limit: {api_key.rate_limit_requests} requests per {api_key.rate_limit_period}s")
-        print(f"\n🔑 API Key: {api_key.key}")
+        print(f"\n🔑 API Key: {plain_key}")
         print("\n⚠️  IMPORTANT: Save this key securely! It won't be shown again.")
-        
+
         if api_key.expires_at:
             print(f"\n⏰ Expires: {api_key.expires_at}")
-        
+
         return 0
 
 
@@ -62,26 +63,26 @@ async def list_keys(args):
     """List all API keys"""
     async with AsyncSessionLocal() as db:
         keys = await list_api_keys(db, skip=0, limit=1000)
-        
+
         if not keys:
             print("No API keys found.")
             return 0
-        
+
         print(f"\n📋 Found {len(keys)} API key(s):\n")
-        print(f"{'ID':<5} {'Name':<20} {'Role':<10} {'Active':<8} {'Last Used':<20} {'Expires':<20}")
-        print("-" * 90)
-        
+        print(f"{'ID':<5} {'Name':<20} {'Prefix':<12} {'Role':<10} {'Active':<8} {'Last Used':<20} {'Expires':<20}")
+        print("-" * 100)
+
         for key in keys:
             last_used = key.last_used_at.strftime("%Y-%m-%d %H:%M") if key.last_used_at else "Never"
             expires = key.expires_at.strftime("%Y-%m-%d %H:%M") if key.expires_at else "Never"
             active = "✓" if key.is_active else "✗"
-            
+
             # Mark expired keys
             if key.is_expired():
                 expires = f"{expires} (EXPIRED)"
-            
-            print(f"{key.id:<5} {key.name:<20} {key.role:<10} {active:<8} {last_used:<20} {expires:<20}")
-        
+
+            print(f"{key.id:<5} {key.name:<20} {key.key_prefix:<12} {key.role:<10} {active:<8} {last_used:<20} {expires:<20}")
+
         return 0
 
 

@@ -8,7 +8,7 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.models import Base
 
@@ -21,17 +21,61 @@ class BaseRepository(Generic[ModelType]):
     def __init__(self, model: Type[ModelType]):
         self.model = model
 
-    async def get(self, db: AsyncSession, id: Any) -> Optional[ModelType]:
-        """Get a single record by ID"""
+    async def get(
+        self,
+        db: AsyncSession,
+        id: Any,
+        *,
+        load_relationships: Optional[List[str]] = None,
+    ) -> Optional[ModelType]:
+        """
+        Get a single record by ID with optional relationship loading.
+
+        Args:
+            db: Database session
+            id: Record ID
+            load_relationships: List of relationship names to eager load
+
+        Returns:
+            Model instance or None
+        """
         query = select(self.model).where(self.model.id == id)
+
+        # Add eager loading for relationships
+        if load_relationships:
+            for rel in load_relationships:
+                query = query.options(selectinload(getattr(self.model, rel)))
+
         result = await db.execute(query)
         return result.scalar_one_or_none()
 
     async def get_multi(
-        self, db: AsyncSession, *, skip: int = 0, limit: int = 100
+        self,
+        db: AsyncSession,
+        *,
+        skip: int = 0,
+        limit: int = 100,
+        load_relationships: Optional[List[str]] = None,
     ) -> List[ModelType]:
-        """Get multiple records with pagination"""
+        """
+        Get multiple records with pagination and optional relationship loading.
+
+        Args:
+            db: Database session
+            skip: Number of records to skip
+            limit: Maximum number of records
+            load_relationships: List of relationship names to eager load
+
+        Returns:
+            List of model instances
+        """
         query = select(self.model).offset(skip).limit(limit)
+
+        # Add eager loading for relationships
+        if load_relationships:
+            for rel in load_relationships:
+                query = query.options(selectinload(getattr(self.model, rel)))
+
         result = await db.execute(query)
         return list(result.scalars().all())
 
