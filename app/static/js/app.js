@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize dark mode theme
+    initDarkMode();
+    
     const map = L.map('map').setView([55.7558, 37.6173], 10);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
@@ -260,10 +263,10 @@ document.addEventListener('DOMContentLoaded', function() {
             <span>${message}</span>
             <button onclick="this.parentElement.remove()" class="close-btn">×</button>
         `;
-        
+
         // Добавляем в DOM
         document.body.appendChild(notification);
-        
+
         // Автоматическое удаление через 5 секунд
         setTimeout(() => {
             if (notification.parentElement) {
@@ -271,4 +274,60 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 5000);
     }
+
+    // =====================================================================
+    // Dark Mode Theme Toggle
+    // =====================================================================
+
+    function initDarkMode() {
+        // Check localStorage for saved theme
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            setTheme('dark');
+        }
+
+        // Create theme toggle button if not exists
+        createThemeToggleButton();
+    }
+
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+
+        // Update toggle button icon
+        const toggleBtn = document.querySelector('.theme-toggle');
+        if (toggleBtn) {
+            toggleBtn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
+        }
+    }
+
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+    }
+
+    function createThemeToggleButton() {
+        // Check if button already exists
+        if (document.querySelector('.theme-toggle')) {
+            return;
+        }
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'theme-toggle';
+        toggleBtn.setAttribute('aria-label', 'Toggle dark mode');
+        toggleBtn.innerHTML = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+        toggleBtn.onclick = toggleTheme;
+
+        document.body.appendChild(toggleBtn);
+    }
+
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+        if (!localStorage.getItem('theme')) {
+            setTheme(e.matches ? 'dark' : 'light');
+        }
+    });
 });

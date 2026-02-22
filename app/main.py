@@ -22,6 +22,7 @@ from app.middleware.compression import CompressionMiddleware
 from app.middleware.https_redirect import HTTPSRedirectMiddleware
 from app.middleware.logging import RequestLoggingMiddleware, PerformanceMiddleware
 from app.middleware.request_id import RequestIDMiddleware
+from app.middleware.security import SecurityHeadersMiddleware
 from app.services.notifications import notification_service
 from app.utils import logging as app_logging
 from app.utils.cache_cleanup import cleanup_manager
@@ -175,6 +176,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Security headers middleware (always enabled for production security)
+app.add_middleware(SecurityHeadersMiddleware)
 # Монтирование статических файлов
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 # Mount Socket.IO app

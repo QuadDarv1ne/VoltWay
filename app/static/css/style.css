@@ -1,4 +1,51 @@
-/* VoltWay Styles - Mobile First Responsive Design */
+/* VoltWay Styles - Mobile First Responsive Design with Dark Mode */
+
+/* CSS Custom Properties for theming */
+:root {
+    /* Light theme (default) */
+    --bg-primary: #f4f4f4;
+    --bg-secondary: #ffffff;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --border-color: #dddddd;
+    --header-bg-start: #2c3e50;
+    --header-bg-end: #34495e;
+    --header-text: #ffffff;
+    --primary-color: #2c3e50;
+    --primary-hover: #34495e;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --shadow-hover: rgba(0, 0, 0, 0.15);
+    --favorite-bg: #f0f0f0;
+    --favorite-hover: #e0e0e0;
+    --favorite-active: #ffd700;
+    --favorite-text: #000000;
+    --subscribe-bg: #f0f0f0;
+    --subscribe-hover: #e0e0e0;
+    --subscribe-text: #666666;
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16213e;
+    --text-primary: #eaeaea;
+    --text-secondary: #b0b0b0;
+    --border-color: #3a3a5a;
+    --header-bg-start: #0f3460;
+    --header-bg-end: #16213e;
+    --header-text: #eaeaea;
+    --primary-color: #e94560;
+    --primary-hover: #ff6b6b;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --shadow-hover: rgba(0, 0, 0, 0.4);
+    --favorite-bg: #2a2a4a;
+    --favorite-hover: #3a3a5a;
+    --favorite-active: #ffd700;
+    --favorite-text: #000000;
+    --subscribe-bg: #2a2a4a;
+    --subscribe-hover: #3a3a5a;
+    --subscribe-text: #b0b0b0;
+}
 
 * {
     box-sizing: border-box;
@@ -8,16 +55,19 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 header {
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--header-bg-start) 0%, var(--header-bg-end) 100%);
+    color: var(--header-text);
     padding: 1rem;
     text-align: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px var(--shadow-color);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 header h1 {
@@ -34,31 +84,34 @@ header h1 {
 
 .controls {
     padding: 1rem;
-    background-color: white;
-    border-bottom: 1px solid #ddd;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
     align-items: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .controls input, .controls select, .controls button {
     margin: 0;
     padding: 0.75rem 1rem;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     font-size: 14px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
     transition: all 0.3s ease;
 }
 
 .controls input:focus, .controls select:focus {
     outline: none;
-    border-color: #2c3e50;
+    border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
 }
 
 .controls button {
-    background: #2c3e50;
+    background: var(--primary-color);
     color: white;
     border: none;
     cursor: pointer;
@@ -66,50 +119,80 @@ header h1 {
 }
 
 .controls button:hover {
-    background: #34495e;
+    background: var(--primary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 8px var(--shadow-hover);
 }
 
 #status {
     padding: 0.5rem;
-    color: #666;
+    color: var(--text-secondary);
     font-size: 14px;
 }
 
 .station-info {
-    background-color: white;
+    background-color: var(--bg-secondary);
     padding: 1rem;
     margin: 1rem;
     border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 10px var(--shadow-color);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .station-info h3 {
     margin-top: 0;
+    color: var(--text-primary);
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px var(--shadow-color);
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px var(--shadow-hover);
 }
 
 /* Стили для кнопок избранного */
 .favorite-btn {
     margin-top: 10px;
     padding: 8px 16px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    background: #f0f0f0;
-    color: #666;
+    background: var(--favorite-bg);
+    color: var(--text-secondary);
     cursor: pointer;
     font-size: 14px;
     transition: all 0.3s ease;
 }
 
 .favorite-btn:hover {
-    background: #e0e0e0;
+    background: var(--favorite-hover);
     transform: translateY(-1px);
 }
 
 .favorite-btn.favorited {
-    background: #ffd700;
-    color: #000;
+    background: var(--favorite-active);
+    color: var(--favorite-text);
     border-color: #ffcc00;
 }
 

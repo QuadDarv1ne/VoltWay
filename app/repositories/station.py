@@ -191,6 +191,43 @@ class StationRepository(BaseRepository[Station]):
         result = await db.execute(query)
         return list(result.scalars().all())
 
+    async def count_by_filters(
+        self,
+        db: AsyncSession,
+        *,
+        connector_type: Optional[str] = None,
+        min_power_kw: Optional[float] = None,
+        status: Optional[str] = None,
+    ) -> int:
+        """
+        Count stations with filters.
+
+        Args:
+            db: Database session
+            connector_type: Filter by connector type
+            min_power_kw: Filter by minimum power
+            status: Filter by status
+
+        Returns:
+            Total count of matching stations
+        """
+        from sqlalchemy import func
+
+        query = select(func.count()).select_from(Station)
+
+        if connector_type:
+            sanitized = re.sub(r"([%_\\])", r"\\\1", connector_type)
+            query = query.where(Station.connector_type.ilike(f"%{sanitized}%"))
+
+        if min_power_kw:
+            query = query.where(Station.power_kw >= min_power_kw)
+
+        if status:
+            query = query.where(Station.status == status)
+
+        result = await db.execute(query)
+        return result.scalar() or 0
+
     async def exists_at_location(
         self, db: AsyncSession, latitude: float, longitude: float
     ) -> bool:
@@ -270,6 +307,95 @@ class StationRepository(BaseRepository[Station]):
             "updated": updated_count,
             "total": len(stations_data),
         }
+
+    async def search_full_text(
+        self,
+        db: AsyncSession,
+        search_query: str,
+        *,
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
+        radius_km: Optional[float] = None,
+        skip: int = 0,
+        limit: int = 50,
+    ) -> List[Station]:
+        """
+        Full-text search for stations.
+
+        Uses PostgreSQL full-text search with tsvector/tsquery.
+
+        Args:
+            db: Database session
+            search_query: Search query string
+            latitude: Optional latitude for location filter
+            longitude: Optional longitude for location filter
+            radius_km: Optional radius for location filter
+            skip: Number of results to skip
+            limit: Maximum number of results
+
+        Returns:
+            List of matching stations
+        """
+        from sqlalchemy import func, text
+
+        # Build search query
+        # Convert search terms to tsquery format
+        search_terms = search_query.split()
+        ts_query = " & ".join(search_terms)  # AND between terms
+
+        # Build base query with full-text search
+        query = select(Station).where(
+            Station.search_vector.op("@@")(func.to_tsquery("russian", ts_query))
+        )
+
+        # Add location filter if provided
+        if latitude and longitude and radius_km:
+            min_lat, max_lat, min_lon, max_lon = create_bbox(
+                latitude, longitude, radius_km
+            )
+            query = query.where(
+                Station.latitude.between(min_lat, max_lat),
+                Station.longitude.between(min_lon, max_lon),
+            )
+
+        # Add ranking for relevance
+        query = query.order_by(
+            func.ts_rank(Station.search_vector, func.to_tsquery("russian", ts_query)).desc()
+        )
+
+        # Apply pagination
+        query = query.offset(skip).limit(limit)
+
+        result = await db.execute(query)
+        return list(result.scalars().all())
+
+    async def get_search_suggestions(
+        self,
+        db: AsyncSession,
+        prefix: str,
+        *,
+        limit: int = 10,
+    ) -> List[str]:
+        """
+        Get search suggestions based on prefix.
+
+        Args:
+            db: Database session
+            prefix: Search prefix
+            limit: Maximum number of suggestions
+
+        Returns:
+            List of suggested search terms
+        """
+        from sqlalchemy import distinct
+
+        # Get distinct titles starting with prefix
+        query = select(distinct(Station.title)).where(
+            Station.title.ilike(f"{prefix}%")
+        ).limit(limit)
+
+        result = await db.execute(query)
+        return [row[0] for row in result.all()]
 
 
 # Global instance
