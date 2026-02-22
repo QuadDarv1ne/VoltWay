@@ -14,11 +14,14 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
 from app.api.exceptions import VoltWayException
+from app.api.health import router as health_router
 from app.api.v1 import v1_router
 from app.api.v2 import v2_router
 from app.core.config import settings
+from app.middleware.compression import CompressionMiddleware
 from app.middleware.https_redirect import HTTPSRedirectMiddleware
 from app.middleware.logging import RequestLoggingMiddleware, PerformanceMiddleware
+from app.middleware.request_id import RequestIDMiddleware
 from app.services.notifications import notification_service
 from app.utils import logging as app_logging
 from app.utils.cache_cleanup import cleanup_manager
@@ -65,7 +68,7 @@ def rate_limit_exceeded_handler(
 async def lifespan(app: FastAPI):
     """Application lifespan context manager"""
     # Startup
-    logger.info("Starting up VoltWay application")
+    logger.info(f"Starting up {settings.app_name} v{settings.app_version}")
     import asyncio
 
     asyncio.create_task(cleanup_manager.start_cleanup_scheduler())
@@ -83,9 +86,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="VoltWay",
+    title=settings.app_name,
     description="Интерактивная карта зарядных станций для электромобилей",
-    version="1.0.0",
+    version=settings.app_version,
     lifespan=lifespan,
 )
 
@@ -104,11 +107,23 @@ else:
     limiter._default_limits = []
 
 # Add middleware (order matters - add in reverse order of execution)
+# Compression middleware (if enabled)
+if settings.enable_compression:
+    app.add_middleware(
+        CompressionMiddleware,
+        minimum_size=settings.compression_minimum_size
+    )
+
 # HTTPS redirect only added when enabled
 if app.state.https_redirect:
     app.add_middleware(HTTPSRedirectMiddleware)
+
+# Performance and logging middleware
 app.add_middleware(PerformanceMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
+
+# Request ID for tracing
+app.add_middleware(RequestIDMiddleware)
 
 # CORS - Use settings.allowed_origins from config
 allowed_origins_list = settings.allowed_origins.split(",")
@@ -177,6 +192,9 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 
 
 # Роутеры
+# Register health check router (no prefix)
+app.include_router(health_router)
+
 # Register versioned API routers
 app.include_router(v1_router)
 app.include_router(v2_router)
@@ -192,15 +210,6 @@ async def root():
     return {"message": "Welcome to VoltWay API"}
 
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint for monitoring"""
-    return {
-        "status": "healthy",
-        "timestamp": "2026-01-06T00:00:00Z",
-    }  # Use datetime.utcnow() in real implementation
-
-
 @app.get("/metrics", tags=["monitoring"], response_class=Response)
 async def prometheus_metrics():
     """Prometheus metrics endpoint"""
@@ -209,11 +218,11 @@ async def prometheus_metrics():
 
 @app.get("/api/v1/health", tags=["health"])
 async def api_health():
-    """API health check endpoint"""
+    """API health check endpoint (deprecated, use /health)"""
     return {
         "status": "healthy",
-        "version": "1.0.0",
-        "service": "VoltWay",
+        "version": settings.app_version,
+        "service": settings.app_name,
     }
 
 

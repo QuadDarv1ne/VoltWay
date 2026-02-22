@@ -1,0 +1,26 @@
+# Development overrides for docker-compose
+# This file is automatically merged with docker-compose.yml in development
+
+version: '3.8'
+
+services:
+  app:
+    # Enable hot reload in development
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      # Mount source code for hot reload
+      - ./app:/app/app:ro
+      - ./logs:/app/logs
+    environment:
+      - DEBUG=True
+      - LOG_LEVEL=DEBUG
+    
+  db:
+    # Expose PostgreSQL port for local development tools
+    ports:
+      - "5432:5432"
+    
+  redis:
+    # Expose Redis port for local development tools
+    ports:
+      - "6379:6379"

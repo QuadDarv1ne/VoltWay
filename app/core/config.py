@@ -1,12 +1,20 @@
+"""
+Application settings with validation and environment-based configuration.
+"""
+
 import secrets
 from typing import Optional
 
-from pydantic import Field, field_validator, ValidationError
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     """Application settings with validation"""
+
+    # Application
+    app_name: str = Field(default="VoltWay", description="Application name")
+    app_version: str = Field(default="1.0.0", description="Application version")
 
     # Database
     database_url: str = Field(
@@ -25,6 +33,9 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str = Field(
         default="redis://localhost:6379", description="Redis connection URL"
+    )
+    redis_enabled: bool = Field(
+        default=True, description="Enable Redis caching"
     )
 
     # External APIs
@@ -46,6 +57,9 @@ class Settings(BaseSettings):
 
     # Environment
     debug: bool = Field(default=False, description="Debug mode")
+    log_level: str = Field(
+        default="INFO", description="Logging level (DEBUG, INFO, WARNING, ERROR)"
+    )
 
     # Sentry
     sentry_dsn: Optional[str] = Field(
@@ -66,6 +80,14 @@ class Settings(BaseSettings):
         description="Comma-separated list of allowed CORS origins",
     )
 
+    # Performance
+    enable_compression: bool = Field(
+        default=True, description="Enable gzip compression"
+    )
+    compression_minimum_size: int = Field(
+        default=500, ge=0, description="Minimum response size for compression (bytes)"
+    )
+
     @field_validator("secret_key")
     @classmethod
     def validate_secret_key(cls, v: str) -> str:
@@ -74,6 +96,16 @@ class Settings(BaseSettings):
             raise ValueError("SECRET_KEY must be at least 32 characters long")
         return v
 
+    @field_validator("log_level")
+    @classmethod
+    def validate_log_level(cls, v: str) -> str:
+        """Validate log level"""
+        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        v_upper = v.upper()
+        if v_upper not in valid_levels:
+            raise ValueError(f"LOG_LEVEL must be one of {valid_levels}")
+        return v_upper
+
     class Config:
         env_file = ".env"
         case_sensitive = False
@@ -81,8 +113,4 @@ class Settings(BaseSettings):
 
 
 # Initialize settings with validation
-try:
-    settings = Settings()
-except ValidationError as e:
-    print(f"Settings validation error: {e}")
-    raise
+settings = Settings()
